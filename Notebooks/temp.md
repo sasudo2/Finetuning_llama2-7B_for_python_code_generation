@@ -9,3 +9,7 @@ alpaca -> pradip (to be uploaded by pradip)\
 ✔️ taco -> sanjay
 
 flytech classification using mistral 7b by deep
+
+49.6k dataset in flytech 
+
+-> a
