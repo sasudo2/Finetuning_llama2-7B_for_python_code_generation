@@ -13,7 +13,20 @@
 \input{src/frontmatter/symbolx}
 
 
+
+% \usepackage{titlesec}      % preambles
+% \setcounter{secnumdepth}{4}
+% \setcounter{tocdepth}{4}
+
+% \titleformat{\paragraph}
+% {\normalfont\normalsize\bfseries}
+% {\theparagraph}{1em}{}
+
+% \titlespacing*{\paragraph}
+% {0pt}{3.25ex plus 1ex minus .2ex}{1.5ex}
+
 \begin{document}
+
 % =====================
 % FRONTMATTER
 % =====================
@@ -46,17 +59,19 @@
 \input{src/chapters/systemArchitectureAndMethodology}
 \input{src/chapters/implementationDetails}
 \input{src/chapters/resultAndAnalysis}
-\input{src/chapters/remainingTasks}
+\input{src/chapters/futureenhancement}
 \input{src/chapters/conclusion}
+\input{src/chapters/appendices}
 
 % =====================
 % BACKMATTER / APPENDICES
 % =====================
 \clearpage
-\appendix
-\addcontentsline{toc}{chapter}{APPENDICES}
-\input{src/backmatter/back.tex}
-\input{src/backmatter/studentGuide.tex}
+
+% \appendix
+% \addcontentsline{toc}{chapter}{APPENDICES}
+% \input{src/backmatter/back.tex}
+% \input{src/backmatter/studentGuide.tex}
 
 % =====================
 % REFERENCES
