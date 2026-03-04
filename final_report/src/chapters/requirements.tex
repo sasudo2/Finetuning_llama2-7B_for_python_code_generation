@@ -4,7 +4,6 @@
 The model is trained on a merged dataset comprising three primary sources, cleaned and formatted into a unified structure (Instruction, Input, Output).
 
 \begin{itemize}
-    \item \textbf{TACO :} Focused on code-related instructions and programming tasks.
     \item \textbf{Alpaca-18k:} A cleaned version of the general-purpose instruction-following dataset.
     \item \textbf{Flytech:} Specialized technical or domain-specific data.
 \end{itemize}
@@ -54,13 +53,6 @@ Hyperparameter tuning is performed on 5\% of the merged dataset. This phase iden
 
 \subsection{Full Fine-tuning}
 Once optimal parameters are identified, the full dataset is utilized for final fine-tuning. This stage requires the High-RAM and high-tier GPU capabilities of \textbf{Colab Pro} to avoid Out-of-Memory (OOM) errors during the weight merging and checkpointing stages.
-
-\section{Sandbox Evaluation Environment}
-To ensure the reliability and performance of the fine-tuned Llama 2 7B model, a dedicated evaluation sandbox was developed using containerization.
-
-\subsection{Dockerized Environment}
-A Docker container was created to provide a consistent, isolated, and reproducible environment for model inference. The container encapsulates all dependencies (Transformers, BitsAndBytes, and PEFT adapters), preventing environment drift between development and testing.
-  
 
 \subsection{Automated Prediction and Extraction}
 The evaluation pipeline follows a three-step automated process:
