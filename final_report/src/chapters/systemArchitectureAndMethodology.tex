@@ -1,5 +1,3 @@
-% --- THEORETICAL BACKGROUND CHAPTER ---
-
 \chapter{SYSTEM ARCHITECTURE AND METHODOLOGY}
 
 \section*{SYSTEM ARCHITECTURE}
@@ -109,6 +107,76 @@ performed during pre-training to better understand the strengths and
 limitations of the resulting models, as reported in the LLaMA-2 evaluation
 studies.
 
+\subsection{Laws of scaling}
+Scaling laws describe predictable patterns in how a model’s performance changes when you scale three main aspects:
+1. Model size (parameters)
+2. Dataset size (training tokens/examples)
+3. Compute (FLOPs / training steps)
+The core idea, originally discovered in neural language models, is:
+When you increase model size, data size, and compute in suitable proportions, error decreases according to a power-law relationship.
+
+Mathematical Formulation of Scaling Laws
+
+Empirical studies in large language models have demonstrated that model performance follows predictable power-law relationships with respect to model size, dataset size, and compute. The general scaling law for model parameters can be expressed as:
+
+\begin{equation}
+\mathcal{L}(N) = \mathcal{L}_{\infty} + \frac{A}{N^{\alpha}}
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $\mathcal{L}(N)$ is the training or validation loss as a function of model size,
+    \item $N$ represents the number of model parameters,
+    \item $\alpha$ is the scaling exponent,
+    \item $A$ is a constant,
+    \item $\mathcal{L}_{\infty}$ denotes the irreducible loss.
+\end{itemize}
+
+This equation indicates that as the number of parameters increases, the loss decreases according to a power-law decay.
+
+Similarly, scaling with respect to total training compute $C$ (measured in FLOPs) follows:
+
+\begin{equation}
+\mathcal{L}(C) = \mathcal{L}_{\infty} + \frac{B}{C^{\beta}}
+\end{equation}
+
+where $\beta$ is the compute scaling exponent and $B$ is a constant.
+
+\subsubsection{Log-Log Linear Relationship}
+
+When plotted in log-log space, scaling laws exhibit an approximately linear relationship:
+
+\begin{equation}
+\log \mathcal{L} = -\alpha \log N + \text{constant}
+\end{equation}
+
+This linear behavior in logarithmic space confirms the power-law nature of neural scaling.
+
+\subsubsection{Data-Model Scaling Trade-off}
+
+Performance improvements also depend on dataset size $D$. Increasing model size without proportionally increasing dataset size may lead to diminishing returns or overfitting. Empirical findings suggest that optimal performance is achieved when model parameters and training tokens scale together approximately as:
+
+\begin{equation}
+N \propto D
+\end{equation}
+
+This balanced scaling ensures efficient utilization of compute resources and prevents under-training of large models.
+
+\subsubsection{Implications for Fine-Tuning}
+
+While classical scaling laws describe full pre-training, similar principles influence fine-tuning. In parameter-efficient methods such as QLoRA, instead of scaling all model parameters, low-rank updates approximate task-specific adaptations in a reduced subspace. This suggests that effective downstream performance can be achieved without increasing full model size, provided that sufficient high-quality task-specific data is available.
+
+\subsubsection{Practical Implications for This Study}
+
+In this work, the base LLaMA-2 7B model is not scaled in parameter size due to computational constraints. Instead, performance improvements are pursued through:
+\begin{itemize}
+    \item Increasing dataset diversity and quality,
+    \item Efficient compute allocation during fine-tuning,
+    \item Low-rank parameter adaptation via QLoRA.
+\end{itemize}
+
+According to scaling law principles, improving data quality and maintaining balanced compute usage is expected to yield more stable performance gains than increasing model parameters under limited hardware resources.
+
 \subsubsection{Training Configuration}
 LLaMA-2 largely adopts the pre-training setup and architectural design of LLaMA-1,
 while introducing several key improvements. The model
@@ -199,6 +267,74 @@ After several iterations, frequently occurring subword units such as \textit{lo}
     \label{fig:First_Step}
 \end{figure}
 
+
+\subsection{Embedding Layer}
+The embedding layer in LLaMA-2 serves as the initial stage of the model, where discrete input tokens are transformed into continuous vector representations. Each token from the vocabulary is mapped to a dense embedding vector of dimension $d$, which captures semantic and syntactic information about the token. The embedding matrix $\mathbf{E} \in \mathbb{R}^{|V| \times d}$ is learned during training, where $|V|$ is the size of the vocabulary. The input token sequence $\mathbf{X} = [x_1, x_2, \dots, x_n]$ is converted into an embedding matrix $\mathbf{X}_e \in \mathbb{R}^{n \times d}$ by indexing into the embedding matrix:
+
+\begin{equation}
+\mathbf{X}_e = \mathbf{E}[x_1, x_2, \dots, x_n]
+\end{equation}
+This embedding layer allows the model to capture complex relationships between tokens and serves as the foundation for subsequent processing in the transformer architecture.
+
+\subsection{RMSNorm}
+RMSNorm (Root Mean Square Layer Normalization) is a normalization technique utilized in LLaMA-2 to stabilize the training process and accelerate convergence \cite{zhang2019rmsnorm}. Unlike standard Layer Normalization, RMSNorm achieves re-scaling invariance by focusing on the root mean square of the activations without subtracting the mean. This simplification reduces computational overhead while maintaining similar performance benefits.
+
+
+
+For an input vector $\mathbf{x} \in \mathbb{R}^d$, the RMSNorm mechanism first calculates the root-mean-square of the elements as shown in Equation \ref{eq:rms_calc}:
+
+\begin{equation}
+\label{eq:rms_calc}
+\text{RMS}(\mathbf{x}) = \sqrt{\frac{1}{d} \sum_{i=1}^{d} x_i^2}
+\end{equation}
+
+The normalized output vector is then derived by scaling the input by the inverse of its RMS value and applying a learned gain parameter $g \in \mathbb{R}^d$:
+
+\begin{equation}
+\text{RMSNorm}(\mathbf{x}) = \frac{\mathbf{x}}{\text{RMS}(\mathbf{x})} \cdot g
+\end{equation}
+
+By implementing pre-normalization with RMSNorm, LLaMA-2 ensures more robust gradient flow and improved training stability across very deep network architectures, while remaining computationally more efficient than traditional LayerNorm methods.
+
+
+
+
+\subsection{Multi-Head Attention (MHA)}
+Multi-Head Attention is a fundamental mechanism in the transformer architecture, utilized specifically in the LLaMA-2 7B and 13B variants. MHA enables the model to jointly attend to information from different representation subspaces at different positions, which is critical for capturing complex semantic relationships between tokens.
+
+
+
+Given input embeddings $\mathbf{X} \in \mathbb{R}^{n \times d}$, where $n$ is the sequence length and $d$ is the hidden dimension, the mechanism first projects the input into query, key, and value matrices:
+
+\begin{equation}
+\mathbf{Q} = \mathbf{X} W^Q, \quad \mathbf{K} = \mathbf{X} W^K, \quad \mathbf{V} = \mathbf{X} W^V
+\end{equation}
+
+where $W^Q, W^K, W^V \in \mathbb{R}^{d \times d_k}$ are learned weight matrices, and $d_k = d/h$ represents the dimension of each of the $h$ attention heads.
+
+% --- FIGURE 3: SCALED DOT PRODUCT ATTENTION ---
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/images/figures/Dot-product-attention.png}
+    \caption{Scaled Dot-Product Attention Mechanism}
+    \label{fig:scaled_attention_dot_product}
+\end{figure}
+
+
+For each individual head $i = 1, \dots, h$, the scaled dot-product attention is computed as:
+
+\begin{equation}
+\text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_i, \mathbf{V}_i) = \text{softmax}\left(\frac{\mathbf{Q}_i \mathbf{K}_i^\top}{\sqrt{d_k}}\right) \mathbf{V}_i
+\end{equation}
+
+The outputs from all heads are then concatenated and linearly transformed using a learned output projection matrix $W^O \in \mathbb{R}^{d \times d}$:
+
+\begin{equation}
+\text{MultiHead}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{Concat}(\text{head}_1, \dots, \text{head}_h) W^O
+\end{equation}
+
+This parallel processing allows the model to capture various linguistic features, such as syntactic dependencies and contextual nuances, more effectively than a single-head attention mechanism.
+
 \subsection{Rotary Positional Embeddings (RoPE)}
 Rotary Positional Embeddings (RoPE) is a technique utilized to encode positional information in transformer-based models like LLaMA-2. Unlike traditional positional encodings that are additively combined with token embeddings, RoPE applies a geometric rotation to the query and key vectors based on their absolute positions in the sequence. 
 
@@ -257,41 +393,15 @@ Following the rotation, the transformed query matrix $\mathbf{Q}'$ and key matri
 
 This rotation allows the attention mechanism to *implicitly encode relative positions* between tokens, improving the model's ability to generalize to sequences longer than those seen during training.
 
-\subsection{Multi-Head Attention (MHA)}
-Multi-Head Attention is a fundamental mechanism in the transformer architecture, utilized specifically in the LLaMA-2 7B and 13B variants. MHA enables the model to jointly attend to information from different representation subspaces at different positions, which is critical for capturing complex semantic relationships between tokens.
-
-
-
-Given input embeddings $\mathbf{X} \in \mathbb{R}^{n \times d}$, where $n$ is the sequence length and $d$ is the hidden dimension, the mechanism first projects the input into query, key, and value matrices:
+\subsection{Feed-Forward Network (FFN)}
+The Feed-Forward Network (FFN) in LLaMA-2 is a crucial component of each transformer decoder layer, responsible for introducing non-linearity and enhancing the model's capacity to capture complex patterns. The FFN consists of two linear transformations with an activation function in between, typically implemented as:
 
 \begin{equation}
-\mathbf{Q} = \mathbf{X} W^Q, \quad \mathbf{K} = \mathbf{X} W^K, \quad \mathbf{V} = \mathbf{X} W^V
+\text{FFN}(\mathbf{x}) = \text{SwiGLU}(\mathbf{x} W_1) W_2
 \end{equation}
 
-where $W^Q, W^K, W^V \in \mathbb{R}^{d \times d_k}$ are learned weight matrices, and $d_k = d/h$ represents the dimension of each of the $h$ attention heads.
+where $W_1, W_2 \in \mathbb{R}^{d \times d_{ff}}$ are learned weight matrices, and $d_{ff}$ is the intermediate hidden dimension, often set to a value larger than the model's hidden size $d$ (e.g., $d_{ff} = 4d$). The activation function used in the FFN is SwiGLU, which enhances the model's expressivity and training stability compared to traditional activation functions. The FFN operates independently on each position in the sequence, allowing for efficient parallel computation while contributing to the overall representational power of the model.
 
-% --- FIGURE 3: SCALED DOT PRODUCT ATTENTION ---
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/Dot-product-attention.png}
-    \caption{Scaled Dot-Product Attention Mechanism}
-    \label{fig:scaled_attention_dot_product}
-\end{figure}
-
-
-For each individual head $i = 1, \dots, h$, the scaled dot-product attention is computed as:
-
-\begin{equation}
-\text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_i, \mathbf{V}_i) = \text{softmax}\left(\frac{\mathbf{Q}_i \mathbf{K}_i^\top}{\sqrt{d_k}}\right) \mathbf{V}_i
-\end{equation}
-
-The outputs from all heads are then concatenated and linearly transformed using a learned output projection matrix $W^O \in \mathbb{R}^{d \times d}$:
-
-\begin{equation}
-\text{MultiHead}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{Concat}(\text{head}_1, \dots, \text{head}_h) W^O
-\end{equation}
-
-This parallel processing allows the model to capture various linguistic features, such as syntactic dependencies and contextual nuances, more effectively than a single-head attention mechanism.
 
 \subsection{Activation Function (SwiGLU)}
 LLaMA-2 utilizes the SwiGLU activation function, a variant of the Gated Linear Unit (GLU) that has been shown to improve model expressivity and training stability compared to traditional ReLU activations \cite{shazeer2020glu}. This activation is integrated within the feed-forward network (FFN) of each transformer decoder layer.
@@ -320,117 +430,40 @@ where $\odot$ denotes the Hadamard (element-wise) product. The SiLU (Sigmoid Lin
 
 By gating the linear transformation $\mathbf{a}$ with the non-linear SiLU output of $\mathbf{b}$, SwiGLU allows the network to model complex patterns more effectively through controlled information flow.
 
-\subsection{RMSNorm}
-RMSNorm (Root Mean Square Layer Normalization) is a normalization technique utilized in LLaMA-2 to stabilize the training process and accelerate convergence \cite{zhang2019rmsnorm}. Unlike standard Layer Normalization, RMSNorm achieves re-scaling invariance by focusing on the root mean square of the activations without subtracting the mean. This simplification reduces computational overhead while maintaining similar performance benefits.
-
-
-
-For an input vector $\mathbf{x} \in \mathbb{R}^d$, the RMSNorm mechanism first calculates the root-mean-square of the elements as shown in Equation \ref{eq:rms_calc}:
-
+\subsection{Softmax Output Layer}
+The final output layer of the LLaMA-2 model is a linear transformation followed by a softmax function, which converts the model's hidden state into a probability distribution over the vocabulary for token prediction. Given the output from the last transformer decoder layer $\mathbf{h} \in \mathbb{R}^{n \times d}$, where $n$ is the sequence length and $d$ is the hidden dimension, the output logits are computed as:
 \begin{equation}
-\label{eq:rms_calc}
-\text{RMS}(\mathbf{x}) = \sqrt{\frac{1}{d} \sum_{i=1}^{d} x_i^2}
+\mathbf{z} = \mathbf{h} W^{\text{out}} + b^{\text{out}}
 \end{equation}
 
-The normalized output vector is then derived by scaling the input by the inverse of its RMS value and applying a learned gain parameter $g \in \mathbb{R}^d$:
+where $W^{\text{out}} \in \mathbb{R}^{d \times V}$ is the output weight matrix and $b^{\text{out}} \in \mathbb{R}^{V}$ is the output bias vector, and $V$ is the size of the vocabulary.
 
+The final output probabilities are then computed using the softmax function:
 \begin{equation}
-\text{RMSNorm}(\mathbf{x}) = \frac{\mathbf{x}}{\text{RMS}(\mathbf{x})} \cdot g
+P(x_t = v) = \frac{\exp(z_v)}{\sum_{v' \in V} \exp(z_{v'})}
 \end{equation}
 
-By implementing pre-normalization with RMSNorm, LLaMA-2 ensures more robust gradient flow and improved training stability across very deep network architectures, while remaining computationally more efficient than traditional LayerNorm methods.
+where $z_v$ is the logit corresponding to token $v$ in the vocabulary. This softmax layer allows the model to generate a probability distribution over all possible next tokens, enabling it to perform autoregressive generation by sampling or selecting the token with the highest probability at each step.
 
+\subsection{Sampling Stragegies}
+During inference, LLaMA-2 generates text by sampling from the probability distribution produced by the softmax output layer. Various sampling strategies can be employed to control the diversity and coherence of the generated text. Common strategies include:
 
-\section{Fine-Tuning}
-Fine-tuning is the process of adapting a pre-trained language model (PLM) to a specific downstream task or domain by continuing the training process on a smaller, task-specific dataset. This approach leverages the broad linguistic and factual knowledge acquired during the pre-training phase, significantly reducing the computational resources and data volume required to achieve high performance on specialized tasks.
+\subsubsection{Greedy Sampling}
+In greedy sampling, the model selects the token with the highest probability at each time step. This approach can lead to deterministic and often repetitive outputs, as it does not consider alternative tokens that may have slightly lower probabilities.
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.8\textwidth]{src/images/figures/flowdiagram.png}
-    \caption{Flow diagram of the fine-tuning process}
-    \label{fig:Fine-tuning_flow}
-\end{figure}
+\subsubsection{Top-k Sampling}
+In top-k sampling, the model restricts the sampling pool to the top $k$ most probable tokens. This method introduces some randomness while still focusing on the most likely candidates, which can help improve the diversity of generated text.
+\subsubsection{Nucleus Sampling (Top-p Sampling)}
+Nucleus sampling, also known as top-p sampling, dynamically selects the smallest set of tokens whose cumulative probability exceeds a threshold $p$. This approach allows for more flexible control over the diversity of generated text compared to fixed top-k sampling. By adjusting the value of $p$, users can balance between generating more coherent text (lower $p$) and more diverse text (higher $p$).
 
-
-\subsection{Mathematical Formulation of Fine-Tuning}
-Consider a pre-trained model with parameters $\theta \in \mathbb{R}^d$, initially trained on a large-scale general corpus $\mathcal{D}_{\text{pretrain}}$. The model defines a conditional probability distribution over token sequences:
-
-$$
-P_\theta (y \mid x)
-$$
-
-where $x$ represents the input sequence and $y$ represents the target sequence.
-
-For a specific downstream task characterized by a dataset $\mathcal{D}_{\text{task}} = \{(x_i, y_i)\}_{i=1}^N$, the fine-tuning process adjusts the parameters $\theta$ to minimize a task-specific loss function $\mathcal{L}(\theta)$. This is typically achieved using the cross-entropy loss:
+\subsubsection{Temperature Scaling}
+Temperature scaling is a technique used to adjust the probability distribution before sampling. By dividing the logits by a temperature parameter $T$, the model can control the randomness of the output. A lower temperature ($T < 1$) makes the distribution sharper, favoring higher-probability tokens, while a higher temperature ($T > 1$) flattens the distribution, allowing for more diverse token selection.
 
 \begin{equation}
-\mathcal{L}(\theta) = - \frac{1}{N} \sum_{i=1}^{N} \sum_{t=1}^{T_i} \log P_\theta(y_{i,t} \mid y_{i,<t}, x_i)
+P(x_{t+1} \mid x_1, x_2, \dots, x_t) = \text{softmax}\left(\frac{\mathbf{Q}_t \mathbf{K}_t^\top}{\sqrt{d_k}} \right) \mathbf{V}_t
 \end{equation}
+By employing these sampling strategies, LLaMA-2 can generate text that is both coherent and diverse, depending on the specific requirements of the application.
 
-In this formulation, $y_{i,t}$ denotes the $t$-th token of the target sequence $y_i$, while $y_{i,<t}$ represents all tokens preceding position $t$, and $T_i$ is the total sequence length. The model parameters are iteratively updated using a gradient-based optimization algorithm:
-
-\begin{equation}
-\theta \leftarrow \theta - \eta \nabla_\theta \mathcal{L}(\theta)
-\end{equation}
-
-where $\eta$ represents the learning rate. This optimization shifts the model's weight distribution to better align with the statistical properties and requirements of the target domain while retaining the foundational representations learned during pre-training.
-
-\section{Quantized Low-Rank Adaptation (QLoRA)}
-Quantized Low-Rank Adaptation (QLoRA) is a parameter-efficient fine-tuning (PEFT) technique that integrates high-precision low-rank adaptation with a quantized, frozen language model. This method significantly reduces the memory footprint required to fine-tune large models like LLaMA-2, making it feasible to perform optimization on consumer-grade hardware without substantial loss in model performance.
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/with_qlora.png}
-    \caption{Llama model with QLoRA}
-    \label{fig:Llama_with_QLoRA}
-\end{figure}
-
-\subsection{Mathematical Formulation}
-The efficiency of QLoRA is derived from two primary mechanisms: weight quantization and the addition of trainable low-rank adapters.
-
-\subsubsection{Weight Quantization}
-Let $\mathbf{W} \in \mathbb{R}^{d \times k}$ represent the pre-trained weight matrix of a transformer layer. In the QLoRA framework, the full-precision weights are quantized into a low-bit representation, typically using 4-bit NormalFloat (NF4), to minimize VRAM consumption:
-
-
-
-\begin{equation}
-\mathbf{W}_q = Q(\mathbf{W}) \approx \mathbf{W}
-\end{equation}
-
-In this expression, $Q(\cdot)$ denotes the quantization function that maps high-precision (32-bit or 16-bit) weights into a 4-bit integer space. This process reduces the storage requirements for the backbone weights by approximately 8 times, allowing the model to remain resident in memory during the fine-tuning of the adapter layers.
-
-\subsubsection{Low-Rank Adaptation (LoRA)}
-Instead of updating the entire quantized matrix $\mathbf{W}_q$, which remains frozen, LoRA introduces trainable low-rank matrices $\mathbf{A} \in \mathbb{R}^{d \times r}$ and $\mathbf{B} \in \mathbb{R}^{r \times k}$ where the rank $r \ll \min(d,k)$. The adapted weight matrix is expressed as:
-
-\begin{equation}
-\mathbf{W}_{\text{adapted}} = \mathbf{W}_q + \Delta \mathbf{W}, \quad \Delta \mathbf{W} = \mathbf{A} \mathbf{B}
-\end{equation}
-
-Here, $\Delta \mathbf{W}$ captures task-specific updates in a low-dimensional subspace. Only $\mathbf{A}$ and $\mathbf{B}$ are trained, while $\mathbf{W}_q$ remains frozen.
-
-\subsubsection{Forward Pass with QLoRA}
-During the forward pass, the adapted weight is used in the standard linear layer to compute the output $\mathbf{y}$ for a given input $\mathbf{x}$:
-
-\begin{equation}
-\mathbf{y} = (\text{dequant}(\mathbf{W}_q) + \mathbf{A}\mathbf{B}) \mathbf{x} + \mathbf{b}
-\end{equation}
-
-where $\mathbf{b} \in \mathbb{R}^d$ represents the bias term. By combining these methods, QLoRA enables high-fidelity fine-tuning with significantly lower computational costs.
-
-\subsection{Training Efficiency}
-The training efficiency of QLoRA is characterized by the following factors:
-\begin{itemize}
-    \item \textbf{Memory Reduction:} Primary weights $\mathbf{W}_q$ are stored in 4-bit, while only small adapter matrices are stored in full precision.
-    \item \textbf{Lower Computational Cost:} Since the rank $r$ is much smaller than $d$ or $k$, the number of trainable parameters is reduced by orders of magnitude.
-    \item \textbf{Hardware Accessibility:} Fine-tuning of large-scale models becomes feasible on single GPUs with limited VRAM.
-\end{itemize}
-
-In summary, the governing formulation for QLoRA-based fine-tuning used in this study is:
-
-\begin{equation}
-\label{eq:qlora_final}
-\boxed{\mathbf{W}_{\text{QLoRA}} = Q(\mathbf{W}) + \mathbf{A}\mathbf{B}}
-\end{equation}
 
 \section{Code Generation with LLMs}
 Large Language Models (LLMs) such as LLaMA-2 have demonstrated robust capabilities in automatic code generation. These models learn programming syntax, semantics, and structural patterns from large-scale code datasets. This enables them to generate source code from natural language instructions, perform code completion, and assist in automated debugging.
@@ -512,6 +545,208 @@ def factorial(n):
 \end{verbatim}
 \end{small}
 
+
+
+\section*{METHODOLOGY}
+
+This project focuses on fine-tuning the Llama-2 7B large language model for Python code generation. The overall methodology is divided into three main stages: dataset preparation, model fine-tuning, and evaluation. First, suitable programming datasets are collected and processed. Then, the pretrained Llama-2 model is fine-tuned using the QLoRA technique to reduce memory usage. Finally, the trained model is evaluated using functional and automatic metrics to measure its performance.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/images/figures/methodology.png}
+    \caption{Methodology}
+    \label{fig:Methodology of the project}
+\end{figure}
+
+\section{Dataset Collection and Preparation}
+
+High-quality and domain-specific data is required to fine-tune the model for Python code generation. Therefore, a composite dataset is created using multiple open-source sources such as the FlyTech Python dataset, Alpaca-style instruction datasets. These datasets contain programming instructions and corresponding Python solutions, which help the model learn diverse coding patterns.
+The collected data is processed to improve quality and consistency. Incomplete or syntactically incorrect programs are filtered using automated checks. Additionally, code formatting is standardized to maintain uniform indentation and structure.
+The processed dataset is divided into three parts after shuffling to ensure effective training and evaluation. About 80\% of the data is used for training, which allows the model to learn programming patterns. Ten percent is reserved for validation to monitor overfitting and tune hyperparameters. The remaining ten percent is used for final evaluation. This separation ensures unbiased performance assessment.
+Each dataset sample is converted into an instruction-based format that includes three components: the system prompt, the problem statement, and the final Python code. This structure helps the model understand how to reason before generating solutions. After formatting, all samples are tokenized using the Llama tokenizer. This ensures compatibility with the pretrained Llama-2 model and prevents token mismatch issues during training.
+
+
+
+
+\section{Hyperparameter Tuning}
+
+Hyperparameters such as learning rate, batch size, number of training epochs, LoRA rank, and regularization parameters play a critical role in determining the stability and effectiveness of the fine-tuning process. Unlike model parameters, which are learned during optimization, hyperparameters must be defined prior to training and directly influence convergence behavior, generalization performance, and computational efficiency.
+
+Formally, hyperparameter optimization can be expressed as:
+
+\begin{equation}
+\lambda^* = \arg\min_{\lambda \in \Lambda} \mathcal{L}_{val}(\lambda)
+\end{equation}
+
+where $\lambda$ represents the set of hyperparameters, $\Lambda$ denotes the search space, and $\mathcal{L}_{val}$ is the validation loss.
+
+\subsection{Search Strategy}
+
+A structured and adaptive hyperparameter optimization strategy is employed. Initially, candidate configurations are sampled from predefined bounded search spaces. Instead of exhaustively evaluating all combinations, an iterative guided search mechanism is adopted, where new configurations are proposed based on the performance of previously evaluated trials.
+
+This approach balances:
+\begin{itemize}
+    \item \textbf{Exploration}: Sampling diverse regions of the search space.
+    \item \textbf{Exploitation}: Refining promising hyperparameter regions.
+\end{itemize}
+
+Such an adaptive search strategy improves efficiency compared to naive grid search, particularly when multiple interacting hyperparameters are involved.
+
+\subsection{Optimization Objective}
+
+The primary objective of hyperparameter tuning is to minimize validation loss while maintaining stable gradient updates and preventing overfitting.
+
+For each candidate configuration:
+
+\begin{itemize}
+    \item The model is fine-tuned for a reduced number of epochs.
+    \item Validation loss is recorded at regular intervals.
+    \item Configurations exhibiting unstable loss behavior are discarded.
+\end{itemize}
+
+The configuration achieving the lowest stable validation loss is selected for full-scale fine-tuning.
+
+\subsection{Tuned Hyperparameters}
+
+The following hyperparameters are optimized:
+
+\begin{itemize}
+    \item \textbf{Learning Rate ($\eta$)}: Controls the magnitude of gradient updates. It significantly affects convergence speed and stability.
+    
+    \item \textbf{Batch Size}: Determines the number of samples processed per optimization step, influencing gradient variance and memory utilization.
+    
+    \item \textbf{LoRA Rank ($r$)}: Specifies the dimensionality of the low-rank adaptation matrices. Larger values increase representational capacity but introduce additional trainable parameters.
+    
+    \item \textbf{LoRA Dropout Rate}: Applies dropout to the low-rank adaptation layers to reduce overfitting and improve generalization.
+    
+    \item \textbf{Learning Rate Scheduler Parameters}: Includes warm-up steps and decay factors that regulate learning rate progression during training.
+    
+    \item \textbf{Warm-up Ratio}: Defines the proportion of total training steps used to gradually increase the learning rate from a small initial value to the target learning rate, thereby stabilizing early training.
+    
+    \item \textbf{LoRA Alpha ($\alpha$)}: A scaling factor applied to the low-rank update matrices to control the magnitude of parameter adaptation.
+\end{itemize}
+
+\subsection{Search Space Definition}
+
+To ensure efficient exploration, bounded search spaces are defined as follows:
+
+\begin{itemize}
+    \item Learning rate is sampled on a logarithmic scale to enable exploration across multiple orders of magnitude.
+    \item Batch size is selected from discrete feasible values constrained by GPU memory.
+    \item LoRA rank is explored within a low-dimensional range to preserve parameter efficiency.
+    \item Dropout rate and warm-up ratio are sampled within continuous bounded intervals.
+\end{itemize}
+
+Logarithmic sampling of the learning rate is particularly important for transformer-based fine-tuning, as optimal values often differ by orders of magnitude.
+
+\subsection{Practical Considerations}
+
+Due to computational constraints, hyperparameter evaluations are conducted using shortened training schedules. Only the most promising configurations are selected for complete fine-tuning. This multi-stage optimization strategy significantly reduces computational cost while maintaining reliable estimation of performance trends.
+
+Through this structured and adaptive hyperparameter optimization framework, the model achieves improved convergence stability, enhanced generalization performance, and efficient utilization of available hardware resources.
+
+
+
+
+
+\section{Quantized Low-Rank Adaptation (QLoRA)}
+Quantized Low-Rank Adaptation (QLoRA) is a parameter-efficient fine-tuning (PEFT) technique that integrates high-precision low-rank adaptation with a quantized, frozen language model. This method significantly reduces the memory footprint required to fine-tune large models like LLaMA-2, making it feasible to perform optimization on consumer-grade hardware without substantial loss in model performance.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/images/figures/with_qlora.png}
+    \caption{Llama model with QLoRA}
+    \label{fig:Llama_with_QLoRA}
+\end{figure}
+
+\subsection{Mathematical Formulation}
+The efficiency of QLoRA is derived from two primary mechanisms: weight quantization and the addition of trainable low-rank adapters.
+
+\subsubsection{Weight Quantization}
+Let $\mathbf{W} \in \mathbb{R}^{d \times k}$ represent the pre-trained weight matrix of a transformer layer. In the QLoRA framework, the full-precision weights are quantized into a low-bit representation, typically using 4-bit NormalFloat (NF4), to minimize VRAM consumption:
+
+
+
+\begin{equation}
+\mathbf{W}_q = Q(\mathbf{W}) \approx \mathbf{W}
+\end{equation}
+
+In this expression, $Q(\cdot)$ denotes the quantization function that maps high-precision (32-bit or 16-bit) weights into a 4-bit integer space. This process reduces the storage requirements for the backbone weights by approximately 8 times, allowing the model to remain resident in memory during the fine-tuning of the adapter layers.
+
+\subsubsection{Low-Rank Adaptation (LoRA)}
+Instead of updating the entire quantized matrix $\mathbf{W}_q$, which remains frozen, LoRA introduces trainable low-rank matrices $\mathbf{A} \in \mathbb{R}^{d \times r}$ and $\mathbf{B} \in \mathbb{R}^{r \times k}$ where the rank $r \ll \min(d,k)$. The adapted weight matrix is expressed as:
+
+\begin{equation}
+\mathbf{W}_{\text{adapted}} = \mathbf{W}_q + \Delta \mathbf{W}, \quad \Delta \mathbf{W} = \mathbf{A} \mathbf{B}
+\end{equation}
+
+Here, $\Delta \mathbf{W}$ captures task-specific updates in a low-dimensional subspace. Only $\mathbf{A}$ and $\mathbf{B}$ are trained, while $\mathbf{W}_q$ remains frozen.
+
+\subsubsection{Forward Pass with QLoRA}
+During the forward pass, the adapted weight is used in the standard linear layer to compute the output $\mathbf{y}$ for a given input $\mathbf{x}$:
+
+\begin{equation}
+\mathbf{y} = (\text{dequant}(\mathbf{W}_q) + \mathbf{A}\mathbf{B}) \mathbf{x} + \mathbf{b}
+\end{equation}
+
+where $\mathbf{b} \in \mathbb{R}^d$ represents the bias term. By combining these methods, QLoRA enables high-fidelity fine-tuning with significantly lower computational costs.
+
+\subsection{Training Efficiency}
+The training efficiency of QLoRA is characterized by the following factors:
+\begin{itemize}
+    \item \textbf{Memory Reduction:} Primary weights $\mathbf{W}_q$ are stored in 4-bit, while only small adapter matrices are stored in full precision.
+    \item \textbf{Lower Computational Cost:} Since the rank $r$ is much smaller than $d$ or $k$, the number of trainable parameters is reduced by orders of magnitude.
+    \item \textbf{Hardware Accessibility:} Fine-tuning of large-scale models becomes feasible on single GPUs with limited VRAM.
+\end{itemize}
+
+In summary, the governing formulation for QLoRA-based fine-tuning used in this study is:
+
+\begin{equation}
+\label{eq:qlora_final}
+\boxed{\mathbf{W}_{\text{QLoRA}} = Q(\mathbf{W}) + \mathbf{A}\mathbf{B}}
+\end{equation}
+
+
+
+\section{Fine-Tuning}
+Fine-tuning is the process of adapting a pre-trained language model (PLM) to a specific downstream task or domain by continuing the training process on a smaller, task-specific dataset. This approach leverages the broad linguistic and factual knowledge acquired during the pre-training phase, significantly reducing the computational resources and data volume required to achieve high performance on specialized tasks.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{src/images/figures/flowdiagram.png}
+    \caption{Flow diagram of the fine-tuning process}
+    \label{fig:Fine-tuning_flow}
+\end{figure}
+
+
+\subsection{Mathematical Formulation of Fine-Tuning}
+Consider a pre-trained model with parameters $\theta \in \mathbb{R}^d$, initially trained on a large-scale general corpus $\mathcal{D}_{\text{pretrain}}$. The model defines a conditional probability distribution over token sequences:
+
+$$
+P_\theta (y \mid x)
+$$
+
+where $x$ represents the input sequence and $y$ represents the target sequence.
+
+For a specific downstream task characterized by a dataset $\mathcal{D}_{\text{task}} = \{(x_i, y_i)\}_{i=1}^N$, the fine-tuning process adjusts the parameters $\theta$ to minimize a task-specific loss function $\mathcal{L}(\theta)$. This is typically achieved using the cross-entropy loss:
+
+\begin{equation}
+\mathcal{L}(\theta) = - \frac{1}{N} \sum_{i=1}^{N} \sum_{t=1}^{T_i} \log P_\theta(y_{i,t} \mid y_{i,<t}, x_i)
+\end{equation}
+
+In this formulation, $y_{i,t}$ denotes the $t$-th token of the target sequence $y_i$, while $y_{i,<t}$ represents all tokens preceding position $t$, and $T_i$ is the total sequence length. The model parameters are iteratively updated using a gradient-based optimization algorithm:
+
+\begin{equation}
+\theta \leftarrow \theta - \eta \nabla_\theta \mathcal{L}(\theta)
+\end{equation}
+
+where $\eta$ represents the learning rate. This optimization shifts the model's weight distribution to better align with the statistical properties and requirements of the target domain while retaining the foundational representations learned during pre-training.
+
+
+
+
+
+\section{Evaluation}
+Automatic metrics such as BLEU and CodeBLEU are used to compare generated code with reference solutions. BLEU measures n-gram similarity, while CodeBLEU also considers syntax, data flow, and semantic correctness. These metrics provide quantitative support to functional evaluation.
 \subsection{BLEU Score}
 
 BLEU evaluates token-level n-gram overlap between generated and reference code \cite{Papineni2002}. 
@@ -583,98 +818,13 @@ The individual components are computed as follows:
 \frac{\text{matching\_semantic\_tokens}}{\text{total\_semantic\_tokens}}
 \end{equation}
 
-
-
-\section*{METHODOLOGY}
-
-This project focuses on fine-tuning the Llama-2 7B large language model for Python code generation. The overall methodology is divided into three main stages: dataset preparation, model fine-tuning, and evaluation. First, suitable programming datasets are collected and processed. Then, the pretrained Llama-2 model is fine-tuned using the QLoRA technique to reduce memory usage. Finally, the trained model is evaluated using functional and automatic metrics to measure its performance.
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/methodology.png}
-    \caption{Methodology}
-    \label{fig:Methodology of the project}
-\end{figure}
-
-\section{Dataset Collection}
-
-High-quality and domain-specific data is required to fine-tune the model for Python code generation. Therefore, a composite dataset is created using multiple open-source sources such as the FlyTech Python dataset, Alpaca-style instruction datasets, and standardized problems from platforms like LeetCode and TACO Python datasets. These datasets contain programming instructions and corresponding Python solutions, which help the model learn diverse coding patterns.
-
-\section{Dataset Preparation}
-
-The collected data is processed to improve quality and consistency. Duplicate samples are removed to reduce redundancy. Incomplete or syntactically incorrect programs are filtered using automated checks. Additionally, code formatting is standardized to maintain uniform indentation and structure.
-
-\section{Train, Validation, and Test Split}
-
-The processed dataset is divided into three parts after shuffling to ensure effective training and evaluation. About 80\% of the data is used for training, which allows the model to learn programming patterns. Ten percent is reserved for validation to monitor overfitting and tune hyperparameters. The remaining ten percent is used for final evaluation. This separation ensures unbiased performance assessment.
-
-\section{Instruction Formatting and Tokenization}
-
-Each dataset sample is converted into an instruction-based format that includes three components: the system prompt, the problem statement, and the final Python code. This structure helps the model understand how to reason before generating solutions. After formatting, all samples are tokenized using the Llama tokenizer. This ensures compatibility with the pretrained Llama-2 model and prevents token mismatch issues during training.
-
-\section{Model Fine-Tuning}
-
-The Llama-2 7B model is fine-tuned using the instruction-tuning approach. Given an input instruction, the model learns to predict the next token in the output sequence. Training aims to minimize the negative log-likelihood loss between predicted and actual tokens. Model parameters are updated using gradient descent. By learning step-by-step problem-solving patterns, the model becomes more accurate and reliable in generating correct Python code.
-
-\section{QLoRA-Based Efficient Training}
-
-To reduce memory consumption, QLoRA is used for fine-tuning. In this approach, the original model weights remain frozen and are loaded in 4-bit quantized form. Small trainable low-rank adapter matrices are inserted into the transformer layers. Only these adapters are updated during training. This method significantly reduces computational and memory requirements, making it possible to train the model on limited hardware such as Google Colab.
-
-\section{Training Setup}
-
-Training is conducted on Google Colab using the AdamW optimizer. Important hyperparameters such as learning rate, batch size, and LoRA rank are selected based on validation loss. Dropout is applied to adapter layers for regularization, and early stopping is used to prevent overfitting. When training cannot be completed in a single session, checkpoints are saved and resumed across multiple sessions to ensure continuity.
-
-\section{Monitoring and Checkpointing}
-
-The training process is continuously monitored using Weights and Biases (WandB), which tracks loss values, evaluation metrics, and system resource usage. Regular checkpoints are saved locally and on Google Drive to prevent data loss. To ensure reproducibility, fixed random seeds are used across all experiments.
-
-\section{Evaluation}
-
-The performance of the fine-tuned model is evaluated using both functional and similarity-based methods. In functional evaluation, generated Python programs are executed in a secure Docker environment. Outputs are classified as correct, partially correct, or incorrect based on test cases. This directly measures the model’s real-world problem-solving ability.
-
-In addition, automatic metrics such as BLEU and CodeBLEU are used to compare generated code with reference solutions. BLEU measures n-gram similarity, while CodeBLEU also considers syntax, data flow, and semantic correctness. These metrics provide quantitative support to functional evaluation.
-
-By combining execution-based testing with similarity metrics, the evaluation ensures that the generated code is syntactically valid, logically correct, and semantically meaningful.
-
-\section{Dataset Collection}
-
-High-quality and domain-specific data is required to fine-tune the model for Python code generation. Therefore, a composite dataset is created using multiple open-source sources such as the FlyTech Python dataset, Alpaca-style instruction datasets, and standardized problems from platforms like LeetCode and TACO Python datasets. These datasets contain programming instructions and corresponding Python solutions, which help the model learn diverse coding patterns.
-
-\section{Dataset Preparation}
-
-The collected data is processed to improve quality and consistency. Duplicate samples are removed to reduce redundancy. Incomplete or syntactically incorrect programs are filtered using automated checks. Additionally, code formatting is standardized to maintain uniform indentation and structure.
-
-\section{Train, Validation, and Test Split}
-
-The processed dataset is divided into three parts after shuffling to ensure effective training and evaluation. About 80\% of the data is used for training, which allows the model to learn programming patterns. Ten percent is reserved for validation to monitor overfitting and tune hyperparameters. The remaining ten percent is used for final evaluation. This separation ensures unbiased performance assessment.
-
-\section{Instruction Formatting and Tokenization}
-
-Each dataset sample is converted into an instruction-based format that includes three components: the system prompt, the problem statement, and the final Python code. This structure helps the model understand how to reason before generating solutions. After formatting, all samples are tokenized using the Llama tokenizer. This ensures compatibility with the pretrained Llama-2 model and prevents token mismatch issues during training.
-
-\section{Model Fine-Tuning}  
-The Llama-2 7B model is fine-tuned using the instruction-tuning approach. Given an input instruction, the model learns to predict the next token in the output sequence. Training aims to minimize the negative log-likelihood loss between predicted and actual tokens. Model parameters are updated using gradient descent. By learning step-by-step problem-solving patterns, the model becomes more accurate and reliable in generating correct Python code.
-
-\section{QLoRA-Based Efficient Training}
-
-To reduce memory consumption, QLoRA is used for fine-tuning. In this approach, the original model weights remain frozen and are loaded in 4-bit quantized form. Small trainable low-rank adapter matrices are inserted into the transformer layers. Only these adapters are updated during training. This method significantly reduces computational and memory requirements, making it possible to train the model on limited hardware such as Google Colab.
-
-
-
-\section{Training Setup}
-
-Training is conducted on Google Colab using the AdamW optimizer. Important hyperparameters such as learning rate, batch size, and LoRA rank are selected based on validation loss. Dropout is applied to adapter layers for regularization, and early stopping is used to prevent overfitting. When training cannot be completed in a single session, checkpoints are saved and resumed across multiple sessions to ensure continuity.
-
-\section{Monitoring and Checkpointing}
-
-The training process is continuously monitored using Weights and Biases (WandB), which tracks loss values, evaluation metrics, and system resource usage. Regular checkpoints are saved locally and on Google Drive to prevent data loss. To ensure reproducibility, fixed random seeds are used across all experiments.
-
-\section{Evaluation}
-
-The performance of the fine-tuned model is evaluated using both functional and similarity-based methods. In functional evaluation, generated Python programs are executed in a secure Docker environment. Outputs are classified as correct, partially correct, or incorrect based on test cases. This directly measures the model’s real-world problem-solving ability.
-
-In addition, automatic metrics such as BLEU and CodeBLEU are used to compare generated code with reference solutions. BLEU measures n-gram similarity, while CodeBLEU also considers syntax, data flow, and semantic correctness. These metrics provide quantitative support to functional evaluation.
-
+\section{Functional Evaluation}
+We test our model on human-eval questions, which consist of a problem statement, a reference solution, and a set of unit tests. The generated code is executed against these unit tests to verify its correctness.
+We evaluate for pass@k, which measures the percentage of problems for which at least one of the top-k generated solutions passes all unit tests. This metric directly assesses the functional correctness of the generated code.
+The human-eval score was found using the folllowing formula:
+\begin{equation}
+\text{pass@k} = 1 - \left(1 - \frac{c}{n}\right)^k
+\end{equation}
 
 
 By combining execution-based testing with similarity metrics, the evaluation ensures that the generated code is syntactically valid, logically correct, and semantically meaningful.
-
