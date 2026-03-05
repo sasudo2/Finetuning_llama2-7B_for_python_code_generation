@@ -1,67 +1,82 @@
 \chapter{REQUIREMENTS ANALYSIS}
 
 \section{Dataset Requirements}
-The model is trained on a merged dataset comprising three primary sources, cleaned and formatted into a unified structure (Instruction, Input, Output).
+The model is trained on a merged, high-quality dataset comprising three primary sources, cleaned and formatted into a unified structure (Instruction, Input, Output) to support Supervised Fine-Tuning (SFT).
 
 \begin{itemize}
-    \item \textbf{Alpaca-18k:} A cleaned version of the general-purpose instruction-following dataset.
-    \item \textbf{Flytech:} Specialized technical or domain-specific data.
+    \item \textbf{Alpaca-18k:} A cleaned version of the general-purpose instruction-following dataset for maintaining conversational fluency.
+    \item \textbf{Flytech-Coding:} Specialized technical data focused on programming logic and software engineering problems.
+    \item \textbf{Refined Test/Train Sets:} Custom-curated \texttt{refined\_train.jsonl} and \texttt{refined\_test.jsonl} files ensure the model is evaluated on unseen, high-fidelity coding tasks.
 \end{itemize}
 
-\subsection{Data Processing}
+\subsection{Data Processing and Masking}
 \begin{itemize}
-    \item \textbf{Merging:} All datasets are merged into a single training file.
-    \item \textbf{Cleaning:} Deduplication, removal of null entries, and prompt template standardization.
-    \item \textbf{Subsampling:} A random 5\% subset is extracted specifically for the hyperparameter tuning phase.
+    \item \textbf{Merging \& Cleaning:} Deduplication and prompt template standardization were performed to ensure consistency.
+    \item \textbf{Instruction Masking:} A custom tokenization script was implemented to set the \texttt{labels} of prompt tokens to $-100$. This ensures the loss is calculated only on the \texttt{code} completion, focusing the model's learning capacity on the output rather than the instructions.
+    \item \textbf{Subsampling:} A random 5\% subset was extracted specifically for the \textbf{Optuna} hyperparameter tuning phase to reduce the computational cost of the 45-trial search.
 \end{itemize}
 
 \section{Hardware and Infrastructure Requirements}
-Due to the computational demands of Llama 2 7B, the project utilizes a hybrid infrastructure approach:
+Due to the computational demands of the Llama-2-7B architecture, a hybrid cloud infrastructure was utilized, leveraging both Kaggle and Google Colab environments.
 
 \begin{table}[h]
     \centering
-    \caption{Infrastructure Allocation}
+    \caption{Infrastructure Allocation and Hardware Resources}
     \begin{tabular}{|l|l|l|}
         \hline
-        \textbf{Task} & \textbf{Platform} & \textbf{Resources} \\ \hline
-        Data Preparation & Kaggle / Colab Free & CPU / T4 GPU \\ \hline
-        Hyperparameter Tuning & Colab Pro & A100 / V100 GPU (High-RAM) \\ \hline
-        Final Fine-tuning & Colab Pro & A100 / V100 GPU (High-RAM) \\ \hline
+        \textbf{Task} & \textbf{Platform} & \textbf{Hardware Resources} \\ \hline
+        Data Preparation & Kaggle / Colab & CPU / T4 GPU (16GB VRAM) \\ \hline
+        HPO (Optuna) & Kaggle CLI & Dual T4 GPUs / P100 \\ \hline
+        Final Fine-tuning & Kaggle / Colab Pro & A100 (40GB) or L4 (24GB) \\ \hline
+        Evaluation (HumanEval) & Kaggle & T4 GPU (Quantized Inference) \\ \hline
     \end{tabular}
 \end{table}
 
 \section{Software Requirements}
-The project implementation relies on the following Python libraries:
+The implementation relies on a specialized ecosystem of Python libraries designed for memory-efficient training and standardized benchmarking.
+
 \begin{itemize}
-    \item \textbf{PEFT:} For implementing QLoRA adapters.
-    \item \textbf{BitsAndBytes:} For 4-bit model quantization.
-    \item \textbf{Transformers/TRL:} For the SFTTrainer and model loading.
-    \item \textbf{Datasets:} For efficient data loading and processing.
+    \item \textbf{PEFT (Parameter-Efficient Fine-Tuning):} 
+    Enables \textbf{LoRA (Low-Rank Adaptation)}. By freezing the 7-billion base parameters and training only small adapters (Rank $r=8$), the memory requirement for gradients is reduced by over 90\%. 
+    
+    
+
+    \item \textbf{BitsAndBytes:} 
+    Provides the backend for \textbf{4-bit Quantization (NF4)}. It includes "Double Quantization" and "Paged Optimizers," which allow the model to operate within 24GB VRAM by offloading optimizer states to CPU RAM during memory spikes.
+    
+    
+
+    \item \textbf{Transformers \& TRL:} 
+    Hugging Face's core libraries for model loading (\texttt{AutoModelForCausalLM}) and tokenization. The \texttt{Trainer} API was used to orchestrate the training loop and handle gradient accumulation.
+
+    \item \textbf{Optuna:} 
+    A hyperparameter optimization framework that utilizes the \textbf{Tree-structured Parzen Estimator (TPE)} to navigate the search space for learning rate, LoRA alpha, and dropout.
+
+    \item \textbf{Weights \& Biases (W\&B):} 
+    Used for real-time telemetry, monitoring validation loss curves, and logging hardware consumption across all 45 HPO trials.
 \end{itemize}
 
-\section{Quantization Configuration}
-To maintain efficiency on Colab Pro, QLoRA is implemented with:
+\section{Quantization and LoRA Configuration}
+To maintain efficiency while preserving 16-bit performance levels, QLoRA was implemented with the following optimal parameters derived from Trial 44:
 \begin{itemize}
-    \item 4-bit NormalFloat (nf4) quantization.
-    \item Double quantization to reduce memory overhead further.
-    \item LoRA rank ($r$) of 8 or 16.
+    \item \textbf{Precision:} 4-bit NormalFloat (nf4) with \texttt{torch.bfloat16} compute dtype.
+    \item \textbf{LoRA Rank ($r$):} 8 (The low rank ensures the model doesn't overfit).
+    \item \textbf{LoRA Alpha ($\alpha$):} 32 (A high scaling factor to amplify adapter influence).
+    \item \textbf{Target Modules:} All linear layers (\texttt{q\_proj}, \texttt{k\_proj}, \texttt{v\_proj}, \texttt{o\_proj}, \texttt{gate\_proj}, \texttt{up\_proj}, \texttt{down\_proj}).
 \end{itemize}
 
-\section{Training Process}
-\subsection{Hyperparameter Tuning}
-Hyperparameter tuning is performed on 5\% of the merged dataset. This phase identifies the optimal learning rate, weight decay, and batch size to ensure stability during the full training run.
+\section{Training and Evaluation Process}
 
-\subsection{Full Fine-tuning}
-Once optimal parameters are identified, the full dataset is utilized for final fine-tuning. This stage requires the High-RAM and high-tier GPU capabilities of \textbf{Colab Pro} to avoid Out-of-Memory (OOM) errors during the weight merging and checkpointing stages.
+\subsection{Hyperparameter Tuning Phase}
+Automated HPO was conducted using Optuna. The process used a \textbf{Median Pruner} to terminate unpromising trials early. Trial 44 emerged as the best, achieving a validation loss of \textbf{0.5847} with a learning rate of $2.91 \times 10^{-5}$ and a cosine scheduler.
 
-\subsection{Automated Prediction and Extraction}
-The evaluation pipeline follows a three-step automated process:
+\subsection{Full Fine-tuning Phase}
+The final training utilized the full merged dataset. To stabilize training, an \textbf{Effective Batch Size of 16} was used (Per-device batch 4 $\times$ Gradient Accumulation 4). **Gradient Checkpointing** was enabled to handle the 512-token sequence length on available hardware.
+
+\subsection{Evaluation Pipeline (Pass@k)}
+The model was evaluated using a three-step automated process:
 \begin{enumerate}
-    \item \textbf{Inference:} The system feeds diverse test cases into the model within the Docker environment.
-    \item \textbf{Extraction:} A custom script parses the raw model output to strip away prompt templates and isolate the specific generated response.
-    \item \textbf{Case-Based Analysis:} The extracted predictions are compared against ground-truth labels for different categories (e.g., code generation, logic reasoning, and general instruction).
+    \item \textbf{Stochastic Inference:} Generating $n=5$ samples per problem using a temperature of $0.8$ to ensure diversity.
+    \item \textbf{Regex Extraction:} A custom \texttt{re}-based script isolates code blocks from the model's natural language responses.
+    \item \textbf{Unit Test Execution:} Utilizing the \texttt{human\_eval.execution} module to run generated code in a sandbox. The final success was measured using \textbf{Pass@1, Pass@2, and Pass@5} scores.
 \end{enumerate}
-
-\subsection{Performance Metrics}
-The model's performance in the sandbox is evaluated based on Correctness of outputs across different input scenarios.
- 
