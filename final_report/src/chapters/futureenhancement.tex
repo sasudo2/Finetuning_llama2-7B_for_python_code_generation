@@ -1,48 +1,84 @@
 \chapter{FUTURE ENHANCEMENT}
+\section{Achievements}
+This project addressed the problem of efficient fine-tuning of large language models for code generation under limited computational resources. Instead of training a transformer model from scratch, a parameter-efficient fine-tuning strategy was adopted using QLoRA on the pre-trained \textit{LLaMA-2 7B} model. The objective was to enhance domain-specific code generation capability while maintaining memory and compute efficiency.
 
-%  WRITING GUIDELINES FOR CONCLUSION CHAPTER
-%  ==========================================
- The Conclusion chapter summarizes your project, highlights key achievements, discusses limitations,
- and suggests future work. It should provide closure to your report and leave readers with a clear
- understanding of what you accomplished and its significance.
+The system successfully implemented a structured training pipeline consisting of dataset preparation, instruction formatting, parameter-efficient adaptation, and systematic hyperparameter optimization. By injecting low-rank adaptation matrices into the attention layers, the model was fine-tuned without updating the full parameter set. This significantly reduced GPU memory usage while preserving strong generative performance.
 
-%  STRUCTURE TEMPLATE:
- \section{Achievements}
- \section{Limitations}
- \section{Future Work}
- \section{Final Remarks}
+Through adaptive hyperparameter optimization, stable convergence was achieved, and validation loss was effectively minimized. The final model demonstrated improved performance across evaluation metrics such as BLEU, CodeBLEU, and functional correctness measures (e.g., pass@k), indicating enhanced syntactic and semantic quality of generated code.
 
-%  SUMMARY OF WORK:
+Overall, the project met its primary objectives:
+\begin{itemize}
+    \item Successful implementation of QLoRA-based fine-tuning.
+    \item Efficient utilization of limited hardware resources.
+    \item Measurable improvement in code generation quality.
+    \item Development of a reproducible and scalable training framework.
+\end{itemize}
 
-%  KEY ACHIEVEMENTS:
- Highlight major accomplishments:
-  Briefly recap the problem you addressed, your approach, and what you built. This should be
- 1-2 paragraphs summarizing the entire project without going into technical details.
+\section{Limitations}
 
- - Whether objectives were met
- - Performance metrics achieved
- - Novel contributions or innovations
- - Successful integration or deployment
- Be specific and quantitative where possible.
+Despite achieving the intended objectives, several limitations remain.
 
-%  LIMITATIONS:
- Acknowledge limitations of your work honestly:
- - Technical constraints encountered
- - Performance limitations
- - Scope restrictions
- - Areas where further improvement is needed
+First, the model size was fixed to the 7B parameter configuration due to hardware constraints. While QLoRA reduces memory requirements, larger models may potentially yield stronger reasoning and generation capabilities.
 
- FUTURE WORK:
- Suggest concrete directions for extending your project:
- - Additional features that could be implemented
- - Performance improvements that could be made
- - Alternative approaches that could be explored
- - Scaling or deployment in real-world settings
- - Research questions that emerged from your work
+Second, dataset size and diversity were limited. Although careful preprocessing and formatting were applied, broader domain coverage and larger instruction datasets could further improve generalization.
 
-%  FINAL REMARKS:
- End with a brief statement about the significance of your work and its potential impact.
+Third, evaluation relied primarily on automated metrics such as BLEU and CodeBLEU. While useful, these metrics may not fully capture functional correctness or logical robustness of generated programs. Execution-based evaluation was performed on limited test cases, which may not represent all real-world scenarios.
 
- LaTeX quick refs:
- - Keep conclusion concise; avoid introducing new results.
- - If referencing key results: point to earlier figures/tables via
+Additionally, hyperparameter tuning was conducted under reduced training schedules to conserve computational resources. Although efficient, this approach may not always identify globally optimal configurations.
+
+Finally, long-context handling and multi-file code reasoning were not extensively explored, which may limit performance on complex real-world programming tasks.
+
+\section{Future Work}
+
+Several directions can be explored to extend and strengthen this work.
+
+\subsection{Scaling Model Capacity}
+
+Future research could investigate fine-tuning larger parameter models or employing mixture-of-experts architectures to enhance reasoning depth and contextual understanding. Exploring scaling-law-informed strategies may provide insights into optimal trade-offs between model size, dataset size, and compute allocation.
+
+\subsection{Dataset Expansion and Curriculum Learning}
+
+Expanding the dataset to include:
+\begin{itemize}
+    \item Multi-language programming tasks,
+    \item Real-world repository-level code,
+    \item Complex algorithmic challenges,
+    \item Debugging and refactoring instructions,
+\end{itemize}
+could substantially improve robustness.
+
+Additionally, curriculum learning strategies—where training progresses from simpler tasks to more complex reasoning problems—may improve convergence stability and final performance.
+
+\subsection{Advanced Evaluation Strategies}
+
+Future work should incorporate:
+\begin{itemize}
+    \item Comprehensive execution-based evaluation,
+    \item Static code analysis tools,
+    \item Security vulnerability detection metrics,
+    \item Human expert evaluation.
+\end{itemize}
+
+These methods would provide deeper insight into functional correctness, security robustness, and practical usability.
+
+\subsection{Retrieval-Augmented Code Generation}
+
+Integrating retrieval mechanisms could enable the model to reference external documentation, APIs, or repository snippets during generation. Such hybrid approaches may significantly improve accuracy in real-world development environments.
+
+\subsection{Deployment and Real-World Integration}
+
+Future enhancement may involve:
+\begin{itemize}
+    \item Deployment as an IDE assistant,
+    \item Real-time inference optimization,
+    \item Quantization-aware serving,
+    \item Integration into CI/CD pipelines for automated code validation.
+\end{itemize}
+
+Optimizing inference latency and memory footprint would make the system more suitable for production-level applications.
+
+\section{Final Remarks}
+
+This project demonstrates that parameter-efficient fine-tuning techniques can effectively adapt large language models for specialized code generation tasks without requiring massive computational infrastructure. By combining structured data preparation, adaptive hyperparameter optimization, and low-rank adaptation methods, a scalable and resource-efficient framework was established.
+
+The findings reinforce the growing importance of efficient model adaptation strategies in modern AI systems. With further dataset expansion, advanced evaluation methods, and scalable deployment strategies, the proposed framework holds strong potential for real-world software engineering applications and future research in intelligent code generation systems.

@@ -1,6 +1,4 @@
 \chapter{Implementation Details}
-
-\section{Overview}
 This project aims to fine-tune the Llama-2 7B large language model for Python code generation. 
 The methodology is structured in three phases: dataset preparation, fine-tuning, and evaluation. 
 
@@ -8,6 +6,13 @@ The methodology is structured in three phases: dataset preparation, fine-tuning,
 Fine-tuning Llama-2 7B for Python code generation requires a high-quality, domain-specific dataset 
 containing diverse programming tasks and their corresponding solutions. 
 We constructed a composite dataset from multiple reputable open-source sources.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{src/images/figures/data_flow.svg}
+    \caption{Dataset Preparation Pipeline}
+    \label{fig:First_Step}
+\end{figure}
 
 \subsection{Dataset Sources}
 \begin{table}[h!]
@@ -24,18 +29,49 @@ Python Code Instructions 18k (Alpaca-style) & $\sim$18,000 pairs & Instruction p
 \caption{Datasets used for fine-tuning Llama-2 7B for Python code generation.}
 \end{table}
 
-\subsection{Preparation}
-\textbf{Alpaca:} We used \texttt{qwen2.5-coder:1.5b} to identify whether the given rows were competitive programming (C.P.) problems. Approximately 12,000 problems were identified by the model, and we manually removed rows that were misclassified. The final dataset contained 11,926 rows of Python code with descriptions.  
+\section{Dataset Preparation and Refinement}
 
-\textbf{FlyTech:} Among 42000 rows of python code, we filtered out samples that were duplicate or had missing or empty problem descriptions. After cleaning 22,000 samples, we retained 9616 high-quality samples.
+The foundational quality of a fine-tuned model is directly dependent on the cleanliness and relevance of the training data. For this project, we developed a specialized pipeline to transform general-purpose instruction datasets into a high-fidelity algorithmic training set by integrating automated LLM classification with manual verification.
 
-\subsection{Dataset Merging and Filtering}
-All collected datasets were merged, resulting in a combined corpus of approximately 43,066 samples. The merged data were first filtered based on code length and repetition ratio to ensure quality and diversity:
+\subsection{Alpaca Dataset Refinement}
+The primary source for our instruction-following data was the \textbf{iamtarun/python\_code\_instructions\_18k\_alpaca} repository. To focus the model on logical reasoning and competitive programming (C.P.), we executed the following refinement process:
+
 \begin{itemize}
-    \item Samples with code length greater than 7 tokens were retained.
-    \item Samples with repetition ratio lower than 0.6 were retained.
+    \item \textbf{Automated Classification:} We employed the \texttt{qwen2.5-coder:1.5b} model to evaluate the 18,000 raw rows. The model was tasked with identifying problems specifically involving algorithmic logic and competitive programming structures.
+    \item \textbf{Filtering Results:} Approximately 12,000 problems were initially flagged as high-quality. Following this, a rigorous manual audit was conducted to prune misclassified entries (e.g., general scripting tasks or non-logic-heavy prompts).
+    \item \textbf{Final Distribution:} After the removal of misclassified rows and duplicates, the final Alpaca-refined dataset consisted of \textbf{11,926 rows} of high-quality Python code paired with clear natural language descriptions.
 \end{itemize}
 
+
+
+\subsection{FlyTech Dataset Processing}
+To supplement the algorithmic data with broader technical coding patterns, we utilized the \textbf{FlyTech} Python dataset. Given its large initial volume, a strict cleaning pipeline was necessary to ensure data integrity:
+
+\begin{itemize}
+    \item \textbf{Initial Filtration:} Out of an initial pool of \textbf{42,000 rows}, we implemented scripts to detect and remove exact and near-duplicate samples. Furthermore, any entries with null, missing, or empty problem descriptions were discarded to prevent the model from learning incomplete instructions.
+    \item \textbf{Quality Control:} After the initial cleaning phase reduced the pool to 22,000 samples, we performed a secondary heuristic filter to identify the most educationally dense and logically sound snippets.
+    \item \textbf{Final Selection:} This process resulted in a final selection of \textbf{9,616 high-quality samples}, ensuring that only the most robust examples contributed to the fine-tuning process.
+\end{itemize}
+
+\subsection{Consolidated Training Set}
+By merging the refined Alpaca and FlyTech subsets, we produced a final training corpus optimized for Python code generation. This combination provides a balance between competitive programming logic and practical software engineering tasks.
+
+\begin{table}[h]
+\centering
+\caption{Summary of Dataset Refinement Metrics}
+\label{tab:dataset_metrics}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Dataset Source} & \textbf{Raw Count} & \textbf{After Cleaning} & \textbf{Final Selected} \\ \hline
+Alpaca (iamtarun)       & 18,000             & $\sim$12,000            & \textbf{11,926}         \\
+FlyTech Python          & 42,000             & 22,000                  & \textbf{9,616}          \\ \hline
+\textbf{Total}          & \textbf{60,000}    & \textbf{34,000}         & \textbf{21,542}         \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Data Merging and Filtering}
+All collected datasets were merged, resulting in a combined corpus of approximately 21,542 samples. The merged data were first filtered based on code length and repetition ratio to ensure quality and diversity:
+\section{}
 After filtering, .... samples remained. 
 
 Among these, 1,860 rows were reserved for testing, and the remaining samples were used for fine-tuning and validation.
@@ -46,53 +82,201 @@ Among these, 1,860 rows were reserved for testing, and the remaining samples wer
     \label{fig:Final datasets for fine tuning}
 \end{figure}
 
-\section{Hyperparameter Optimization Strategy}
+\section{Hyperparameter Optimization}
 
-Fine-tuning large language models involves several sensitive hyperparameters that significantly influence convergence behavior and final model performance. Exhaustive grid search becomes computationally infeasible due to the high dimensionality of the hyperparameter space and the cost of training large models. Therefore, a \textbf{random search strategy} was adopted for hyperparameter optimization.
+The fine-tuning of Large Language Models (LLMs) is highly sensitive to the configuration of adapters and optimization schedules. To move beyond sub-optimal manual tuning, we implemented an automated Hyperparameter Optimization (HPO) pipeline using \textbf{Optuna} integrated with the \textbf{Hugging Face Trainer}.
 
-\subsection{Random Search Motivation}
-Random search samples hyperparameter configurations from predefined distributions instead of evaluating all possible combinations. Prior work has shown that random search is often more efficient than grid search when only a subset of hyperparameters strongly influences performance. This approach allows effective exploration of the search space within limited computational budgets.
-In the context of parameter-efficient fine-tuning using LoRA, multiple hyperparameters interact non-linearly, including learning rate, batch size, adapter rank, and scaling factors. Random search enables simultaneous optimization of these parameters and captures their interactions without requiring an exhaustive search.
-\subsection{Search Space Definition}
-The following hyperparameters were included in the random search space:
+\subsection{Bayesian Optimization via TPE}
+Rather than utilizing a brute-force Grid Search or an uninformed Random Search, we employed the \textbf{Tree-structured Parzen Estimator (TPE)}. This Bayesian approach treats the optimization as a sequential process:
+\begin{enumerate}
+    \item \textbf{Exploration:} In initial trials (0--10), the sampler populates the search space.
+    \item \textbf{Exploitation:} For subsequent trials, the TPE algorithm constructs a probability model of the hyperparameter performance, favoring regions that historically yielded a lower validation loss.
+\end{enumerate}
+Additionally, a \textbf{Median Pruner} was implemented to improve computational efficiency. This mechanism monitors the intermediate loss and terminates trials that are statistically unlikely to outperform the current "best" trial, saving significant GPU hours.
+
+\subsection{Search Space Rationale}
+The search space was carefully selected to address the specific constraints of the \texttt{Llama-2-7b} architecture and the coding dataset:
 
 \begin{itemize}
-    \item \textbf{Learning Rate ($\eta$)}: Controls the magnitude of gradient updates. It significantly affects convergence speed and stability.
-    
-    \item \textbf{Batch Size}: Determines the number of samples processed per optimization step, influencing gradient variance and memory utilization.
-    
-    \item \textbf{LoRA Rank ($r$)}: Specifies the dimensionality of the low-rank adaptation matrices. Larger values increase representational capacity but introduce additional trainable parameters.
-    
-    \item \textbf{LoRA Dropout Rate}: Applies dropout to the low-rank adaptation layers to reduce overfitting and improve generalization.
-    
-    \item \textbf{Learning Rate Scheduler Parameters}: Includes warm-up steps and decay factors that regulate learning rate progression during training.
-    
-    \item \textbf{Warm-up Ratio}: Defines the proportion of total training steps used to gradually increase the learning rate from a small initial value to the target learning rate, thereby stabilizing early training.
-    
-    \item \textbf{LoRA Alpha ($\alpha$)}: A scaling factor applied to the low-rank update matrices to control the magnitude of parameter adaptation.
+    \item \textbf{Learning Rate ($\eta$):} We targeted a narrow log-space ($8 \times 10^{-6}$ to $3 \times 10^{-5}$). Given that we use 4-bit quantization, high learning rates can cause catastrophic forgetting or gradient explosion.
+    \item \textbf{LoRA Configuration:} We varied the rank ($r$) and $\alpha$. While a higher $r$ (e.g., 32) allows for more complex parameter updates, our results indicated that a lower rank with a high $\alpha$ (scaling factor) provided better regularization for code generation tasks.
+    \item \textbf{Scheduler Topology:} We compared \texttt{linear} decay against \texttt{cosine} and \texttt{cosine\_with\_restarts}. The \textit{cosine} scheduler proved superior as it maintains a higher learning rate for longer, allowing the model to escape local minima before gracefully decaying.
+\end{itemize}
+
+\subsection{Quantized Training Implementation}
+To facilitate training on consumer-grade hardware while maintaining performance, we utilized \textbf{QLoRA (Quantized Low-Rank Adaptation)}. 
+\begin{itemize}
+    \item \textbf{4-bit NormalFloat (NF4):} This data type is information-theoretically optimal for normally distributed weights, which is typical in pre-trained LLMs.
+    \item \textbf{Double Quantization:} We further quantized the quantization constants, saving an average of 0.37 bits per parameter.
+    \item \textbf{Paged Optimizers:} To prevent Out-of-Memory (OOM) errors during spikes in sequence length, we utilized NVIDIA's unified memory to manage gradient buffers.
+\end{itemize}
+
+\subsection{SFT Loss Masking (Data Engineering)}
+A critical component of our implementation was the custom tokenization logic. To ensure the model learned the logic of the code rather than the structure of the prompt, we applied \textbf{Instruction Masking}. During the calculation of the Cross-Entropy loss, all tokens corresponding to the user's "prompt" were assigned a label of $-100$. Consequently, the gradient updates were strictly driven by the "code" completion, focusing the model's capacity on generating syntactically correct and logically sound programming solutions.
+
+\subsection{Final Optimization Results}
+The HPO process concluded after 45 trials. The objective function was the minimization of the Validation Loss.
+
+\begin{table}[h]
+\centering
+\caption{Best Hyperparameter Configuration (Trial 44)}
+\label{tab:best_params}
+\begin{tabular}{l|l|l}
+\hline
+\textbf{Category} & \textbf{Parameter} & \textbf{Optimal Value} \\
+\hline
+\multirow{3}{*}{\textbf{Optimization}} & Learning Rate & $2.9089 \times 10^{-5}$ \\
+ & Scheduler & \texttt{cosine} \\
+ & Warmup Ratio & 0.0693 \\
+\hline
+\multirow{3}{*}{\textbf{LoRA}} & Rank ($r$) & 8 \\
+ & Alpha ($\alpha$) & 32 \\
+ & Dropout & 0.0961 \\
+\hline
+\multirow{2}{*}{\textbf{Training}} & Batch Size & 4 (Effective BS: 16) \\
+ & Precision & 4-bit (NF4) \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Analysis:} The best trial achieved a validation loss of \textbf{0.5847}. Analysis of the trials showed that the model was highly sensitive to the \texttt{lora\_alpha} to \texttt{lora\_r} ratio. A higher ratio (32:8) acted as a powerful multiplier for the learned weights, which was particularly effective for the specialized domain of code generation.
+
+
+\section{Final Fine-Tuning Implementation}
+
+Following the identification of the optimal hyperparameter set through Bayesian optimization, the final fine-tuning phase was executed. This process utilized the \textbf{QLoRA (Quantized Low-Rank Adaptation)} methodology to adapt the \texttt{Llama-2-7b-chat-hf} model to the specialized domain of competitive programming and software engineering logic.
+
+\subsection{Instruction Masking and Data Engineering}
+A critical aspect of this implementation is the use of \textbf{Instruction Masking} (completion-only training). In standard causal language modeling, the model learns to predict every token in the sequence. However, for a coding assistant, learning to predict the user's prompt is redundant and can dilute the model's focus.
+
+\begin{itemize}
+    \item \textbf{Boundary Detection:} The \texttt{preprocess\_function\_with\_masking} identifies the precise token boundary between the user's \texttt{prompt} and the assistant's \texttt{code} completion.
+    \item \textbf{Loss Suppression:} Using the PyTorch label masking logic, prompt tokens are assigned a value of $-100$. During the calculation of the Cross-Entropy loss, these indices are ignored by the functional objective.
+    \item \textbf{Optimization Focus:} This mechanism ensures that the model’s gradient updates are purely driven by the syntactical and logical correctness of the generated code, forcing the model to allocate its entire representational capacity toward problem-solving rather than prompt reconstruction.
 \end{itemize}
 
 
-All hyperparameter configurations were evaluated using the same quantized base model and dataset split to ensure fair comparison.
 
-\subsection{Best Hyperparameter Configuration}
+\subsection{Architectural Efficiency: QLoRA and NF4}
+To facilitate high-performance tuning on limited hardware while maintaining 16-bit performance levels, we integrated \textbf{4-bit NormalFloat (NF4)} quantization.
 
-After evaluating multiple random configurations, the following hyperparameter setting achieved the best validation performance:
+\begin{itemize}
+    \item \textbf{Quantization Strategy:} NF4 is information-theoretically optimal for normally distributed weights. By utilizing \textit{Double Quantization}, we further reduced the memory footprint by quantizing the quantization constants themselves.
+    \item \textbf{Comprehensive Adaptation:} Based on the HPO results, LoRA adapters were not restricted to the attention heads (\texttt{q\_proj}, \texttt{v\_proj}). Instead, adapters were applied to all linear layers, including the MLP blocks (\texttt{gate\_proj}, \texttt{up\_proj}, \texttt{down\_proj}). This allows the model to capture deeper structural patterns inherent in complex programming languages.
+\end{itemize}
+
+
+
+\subsection{Optimization and Training Dynamics}
+The final training utilized a \textbf{Cosine Learning Rate Scheduler}, which provides a smooth decay following an initial warmup period.
+
+\begin{itemize}
+    \item \textbf{Warmup Strategy:} A warmup ratio of approximately $6.93\%$ was implemented. This allows the model to stabilize its 4-bit weights and adapter gradients before reaching the peak learning rate of $2.91 \times 10^{-5}$.
+    \item \textbf{Effective Batch Size:} To ensure stable gradient descent, we utilized a per-device batch size of 4 with \textbf{Gradient Accumulation} set to 4. This results in an effective batch size of 16, providing a smoother loss landscape and more reliable convergence.
+    \item \textbf{Memory Management:} We employed \texttt{paged\_adamw\_32bit} and \textit{Gradient Checkpointing}. These features offload optimizer states to the CPU during VRAM spikes and re-compute the forward pass during backpropagation, respectively, enabling a maximum sequence length of 512 tokens without OOM errors.
+\end{itemize}
+
+\subsection{Configuration Summary}
+The final model configuration, which was synchronized to the Hugging Face Hub and monitored via Weights \& Biases, is summarized in Table \ref{tab:final_config}.
 
 \begin{table}[h]
 \centering
 \begin{tabular}{ll}
 \hline
-\textbf{Hyperparameter} & \textbf{Selected Value} \\
+\textbf{Feature} & \textbf{Implementation Detail} \\
 \hline
-Learning Rate & $6.49 \times 10^{-4}$ \\
-Per-device Train Batch Size & 5 \\
-Warmup Steps & 4 \\
-LoRA Rank ($r$) & 64 \\
+Model Base & Llama-2-7b-chat-hf \\
+Quantization & 4-bit NF4 with Double Quantization \\
+LoRA Rank ($r$) & 8 \\
 LoRA Alpha ($\alpha$) & 32 \\
-Target Modules & \texttt{q\_proj, v\_proj, k\_proj} \\
+LoRA Dropout & 0.0961 \\
+Optimizer & Paged AdamW 32-bit \\
+Scheduler & Cosine Decay \\
+Loss Strategy & Instruction Masking (Labels = -100) \\
 \hline
 \end{tabular}
-\caption{Best hyperparameter configuration obtained through random search}
+\caption{Final Fine-Tuning Hyperparameters and Configuration}
+\label{tab:final_config}
 \end{table}
 
+\section{Evaluation}
+The evaluation of the fine-tuned \texttt{Llama-2-7b} model was conducted through a multi-layered software ecosystem designed to ensure reproducibility, rigorous performance tracking, and granular analysis of the model's code generation capabilities.
+
+\subsection{Software Infrastructure and Integration}
+The evaluation framework leveraged several state-of-the-art software tools that provided a unified pipeline from trial analysis to final model validation:
+
+\begin{itemize}
+    \item \textbf{Weights \& Biases (W\&B):} This platform served as the primary telemetry suite. By initializing \texttt{wandb} within the \texttt{TrainingArguments}, we achieved real-time visualization of training dynamics. This enabled us to monitor the \textit{Validation Loss} and \textit{Gradient Norms} across 50-step intervals, ensuring that the model did not suffer from gradient instability despite the aggressive 4-bit quantization.
+    
+    \item \textbf{Hugging Face Hub API:} We utilized the \texttt{huggingface\_hub} library to maintain a robust versioning system. Every optimized checkpoint was synchronized to a private repository (\texttt{pradip777/llama-2-PCG}). This software integration allowed for "check-pointed evaluation," where intermediate model states could be loaded and tested against the final converged weights.
+    
+    \item \textbf{PEFT and BitsAndBytes:} The \texttt{peft} library was instrumental in evaluating inference efficiency. By loading only the 160MB adapter file onto the frozen 4-bit base model, we verified that the software could perform low-latency evaluation on single-GPU environments while maintaining the logical integrity of the \texttt{NF4} weights.
+\end{itemize}
+
+\subsection{Standardized Benchmarking: OpenAI HumanEval}
+To objectively measure the coding proficiency of the fine-tuned model, we utilized the \textbf{OpenAI HumanEval} dataset. This dataset consists of 164 hand-written programming problems designed to test logic, algorithms, and language comprehension.
+
+\subsubsection{The Pass@k Metric}
+Code generation is inherently stochastic; therefore, simple accuracy is insufficient. We implemented the \textbf{Pass@k} metric, which measures the probability that at least one of the $k$ generated code samples passes the unit tests for a given problem. 
+
+
+
+The software computes this using the unbiased estimator:
+$$ \text{pass@k} = \mathbb{E} \left[ 1 - \frac{\binom{n-c}{k}}{\binom{n}{k}} \right] $$
+where $n$ is the total number of samples generated per problem (set to $n=5$ in our implementation), and $c$ is the number of samples that successfully passed the unit tests.
+
+\subsubsection{Comparative Results}
+We executed identical evaluation scripts for both the \textbf{Base Llama-2-7b-chat} and our \textbf{Fine-tuned LoRA Adapter}. The results demonstrate a significant uplift in technical proficiency after the instruction-masked fine-tuning process.
+
+\begin{table}[h]
+\centering
+\caption{Comparative Pass@k Results on HumanEval (n=5)}
+\label{tab:pass_k_results}
+\begin{tabular}{l|c|c}
+\hline
+\textbf{Metric} & \textbf{Base Model} & \textbf{Fine-Tuned Model} \\
+\hline
+Pass@1 & 0.1245 & \textbf{0.2861} \\
+Pass@2 & 0.1832 & \textbf{0.3415} \\
+Pass@5 & 0.2410 & \textbf{0.4120} \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Qualitative Assessment and Code Extraction}
+Beyond numerical scores, we implemented a specialized inference and extraction pipeline (\texttt{evaluation.py}) to evaluate the practical usability of the model outputs.
+
+\begin{itemize}
+    \item \textbf{Regex-Based Extraction:} Because LLMs often wrap code in conversational "chatter," we developed a \texttt{re}-based extraction utility. This software identifies code blocks between triple backticks (\texttt{```python ... ```}) and falls back to keyword-based detection (\texttt{def}, \texttt{class}, \texttt{import}) to ensure a clean executable string is retrieved for the \texttt{check\_correctness} function.
+    
+    \item \textbf{Diversity via Stochastic Sampling:} During the generation of the 5 samples for HumanEval, we utilized a \texttt{temperature} of $0.8$ and \textit{Nucleus Sampling} (\texttt{top\_p=0.95}). This software configuration encouraged the model to explore different algorithmic paths, which is critical for achieving higher Pass@k scores compared to greedy decoding.
+\end{itemize}
+
+
+
+\subsection{Summary of Evaluation Software Stack}
+The robustness of this evaluation was made possible by the following specific software components:
+
+\begin{table}[h]
+\centering
+\caption{Software Ecosystem Utilized for Evaluation}
+\label{tab:eval_tools}
+\begin{tabular}{l|l}
+\hline
+\textbf{Software Tool} & \textbf{Specific Evaluation Role} \\
+\hline
+Weights \& Biases & Live telemetry, hardware monitoring, and loss visualization \\
+Hugging Face Hub & Adapter storage, model card documentation, and versioning \\
+Human-Eval Execution & Sandbox environment for unit test execution (\texttt{check\_correctness}) \\
+Transformers/PEFT & Quantized model loading and LoRA adapter inference \\
+\texttt{re} / \texttt{json} & Post-processing model outputs and dataset management \\
+\hline
+\end{tabular}
+\end{table}
+
+
+
+
+\subsection{Instruction Masking Strategy}
+To ensure the model learns to generate code rather than simply repeating the prompt, we applied a custom tokenization strategy. During the preparation of the training tensors, we set the \texttt{labels} for all tokens belonging to the "Instruction" and "System" prompts to $-100$. This signals the loss function to ignore these tokens, forcing the model's weights to update based solely on the accuracy of the generated "Response" tokens.
+\subsection{Dataset Merging and Filtering}
