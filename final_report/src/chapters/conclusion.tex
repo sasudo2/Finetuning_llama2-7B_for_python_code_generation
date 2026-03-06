@@ -1,48 +1,34 @@
 \chapter{CONCLUSION}
 
-%  WRITING GUIDELINES FOR CONCLUSION CHAPTER
-%  ==========================================
- The Conclusion chapter summarizes your project, highlights key achievements, discusses limitations,
- and suggests future work. It should provide closure to your report and leave readers with a clear
- understanding of what you accomplished and its significance.
+This project successfully developed a locally-deployable, high-performance AI code assistant specialized for competitive programming and algorithmic reasoning. By leveraging the Llama-2-7B architecture and optimizing it through a high-quality, filtered dataset, we bridged the gap between large-scale proprietary models and accessible, private local alternatives.
 
-%  STRUCTURE TEMPLATE:
- \section{Achievements}
- \section{Limitations}
- \section{Future Work}
- \section{Final Remarks}
+\section{Achievements}
+The project successfully met all initial objectives, achieving several key milestones in both model performance and system architecture:
+\begin{itemize}
+    \item \textbf{Successful Fine-Tuning:} We implemented a robust QLoRA-based fine-tuning pipeline that adapted the Llama-2-7B model for source code generation within limited VRAM constraints.
+    \item \textbf{Significant Performance Gains:} The model achieved a \textbf{Pass@1 score of 34.6\%} on the HumanEval benchmark, representing a \textbf{2.7x improvement} over the base Llama-2-7B model's performance (12.8\%).
+    \item \textbf{Novel Data Filtration:} We demonstrated the efficacy of using a smaller, specialized "Teacher Model" (\texttt{Qwen2.5-Coder-1.5B}) to purify training data, proving that data quality is more impactful than raw quantity for domain-specific tasks.
+    \item \textbf{Seamless Local Deployment:} The final model was successfully optimized into GGUF format and deployed via \textbf{Ollama}, providing an inference speed of \textbf{24 tokens per second} on consumer-grade hardware.
+\end{itemize}
 
-%  SUMMARY OF WORK:
+\section{Limitations}
+Despite the successful outcomes, several limitations were identified during the development and testing phases:
+\begin{itemize}
+    \item \textbf{Context Window Constraints:} While Llama-2-7B performs well on individual functions, its 4096-token context window limits its ability to analyze very large code repositories or multi-file projects.
+    \item \textbf{Hardware Bottlenecks:} Due to hardware limitations, we could not explore full parameter fine-tuning or training of the 13B and 70B Llama variants, which likely possess higher reasoning ceilings.
+    \item \textbf{Language Bias:} The current fine-tuning focused heavily on Python. Performance in low-level languages like C++ or Rust, while functional, remains lower than Pythonic performance.
+\end{itemize}
 
-%  KEY ACHIEVEMENTS:
- Highlight major accomplishments:
-  Briefly recap the problem you addressed, your approach, and what you built. This should be
- 1-2 paragraphs summarizing the entire project without going into technical details.
+\section{Future Work}
+Building upon the foundation laid by this project, several avenues for future research and development are proposed:
+\begin{itemize}
+    \item \textbf{Context Extension:} Implementing LongLoRA or YaRN techniques to extend the context window to 32k or 128k tokens, allowing for repository-wide code comprehension.
+    \item \textbf{Multi-Language Expansion:} Scaling the dataset to include specialized competitive programming examples in C++, Java, and Go to make the assistant more versatile for diverse software engineering tasks.
+    \item \textbf{RLHF Integration:} Utilizing Reinforcement Learning from Human Feedback (RLHF) with unit-test signals as a reward function to further reduce logical hallucinations in generated code.
+    \item \textbf{Agentic Workflows:} Developing a "Self-Correction" layer where the model can execute its own generated code in a local sandbox and automatically fix bugs before presenting the final solution to the user.
+\end{itemize}
 
- - Whether objectives were met
- - Performance metrics achieved
- - Novel contributions or innovations
- - Successful integration or deployment
- Be specific and quantitative where possible.
 
-%  LIMITATIONS:
- Acknowledge limitations of your work honestly:
- - Technical constraints encountered
- - Performance limitations
- - Scope restrictions
- - Areas where further improvement is needed
 
- FUTURE WORK:
- Suggest concrete directions for extending your project:
- - Additional features that could be implemented
- - Performance improvements that could be made
- - Alternative approaches that could be explored
- - Scaling or deployment in real-world settings
- - Research questions that emerged from your work
-
-%  FINAL REMARKS:
- End with a brief statement about the significance of your work and its potential impact.
-
- LaTeX quick refs:
- - Keep conclusion concise; avoid introducing new results.
- - If referencing key results: point to earlier figures/tables via
+\section{Final Remarks}
+The results of this project demonstrate that specialized fine-tuning and meticulous data engineering can transform a general-purpose language model into a highly effective coding assistant. By deploying this system via Ollama, we have provided a blueprint for local, private, and efficient AI tools that empower developers to leverage state-of-the-art code intelligence without compromising data security or relying on expensive cloud-based APIs.

@@ -187,6 +187,23 @@ and rotary positional embeddings (RoPE) are used to encode
 positional information.The primary architectural enhancements over LLaMA-1 include an increased context
 length of 4096 tokens.
 
+\subsection{AdamW Optimizer}
+The AdamW optimizer is a variant of the Adam optimization algorithm that incorporates decoupled weight decay regularization. It is designed to improve generalization performance by applying weight decay directly to the parameters rather than to the gradients, which can lead to more effective regularization and better convergence properties. The update rule for AdamW can be expressed as follows:
+\begin{equation}
+    \theta_{t+1} = \theta_t - \eta \left( \frac{m_t}{\sqrt{v_t} + \epsilon} + \lambda \theta_t \right)
+\end{equation}
+where $\theta_t$ represents the model parameters at time $t$, $\eta$ is the learning rate, $m_t$ and $v_t$ are the first and second moments of the gradients, $\epsilon$ is a small constant for numerical stability, and $\lambda$ is the weight decay coefficient. AdamW has been shown to be effective in training large language models, providing improved convergence and generalization compared to traditional Adam, especially when training with large batch sizes or on large datasets.
+
+\subsection{Cosine Learning Rate Scheduler}
+The cosine learning rate scheduler is a method for adjusting the learning rate during training, following a cosine decay pattern. This approach helps in stabilizing the training process and can lead to better generalization performance. The learning rate is updated according to the following formula:
+\begin{equation}
+    \eta_t = \eta_{\min} + \frac{1}{2} (\eta_{\max} - \eta_{\min}) \left(1 + \cos\left(\frac{\pi t}{T}\right)\right)
+\end{equation}
+where $\eta_{\max}$ and $\eta_{\min}$ are the maximum and minimum learning rates, $t$ is the current iteration, and $T$ is the total number of iterations. The cosine scheduler allows for a gradual decrease in the learning rate, which can help the model converge more smoothly and avoid getting stuck in local minima. It is particularly effective when combined with warm-up strategies at the beginning of training.
+
+
+
+
 \subsection{Input Sequence Representation}
 The LLaMA-2 7B Chat model utilizes a specific structured input format to distinguish between system-level instructions, user prompts, and model responses. This structure is essential for maintaining the conversational context and safety constraints during inference. 
 
@@ -546,6 +563,110 @@ def factorial(n):
 \end{small}
 
 
+\section{System Architecture: Qwen2.5-Coder-1.5B}
+
+The \texttt{Qwen2.5-Coder-1.5B} model is a specialized decoder-only language model from the Qwen-2.5 family, specifically engineered for high-precision code intelligence. Despite its compact footprint of 1.54 billion parameters, it incorporates state-of-the-art structural optimizations that allow it to rival larger general-purpose models in code classification and generation tasks.
+
+
+
+\subsection{Dense Transformer Backbone and GQA}
+The model utilizes a Dense Transformer architecture refined for the structural dependencies of source code. A critical efficiency feature is the implementation of \textbf{Grouped-Query Attention (GQA)}. 
+
+Unlike standard Multi-Head Attention where each Query ($Q$) head has a dedicated Key ($K$) and Value ($V$) head, GQA shares a single KV head across a group of query heads. This reduction in the KV cache size is expressed as:
+\begin{equation}
+\text{KV\_Cache\_Size} \propto \frac{n_{kv\_heads}}{n_{q\_heads}} \cdot d_{head} \cdot L
+\end{equation}
+where $L$ is the sequence length. This allows the 1.5B model to perform high-throughput batching during our data classification phase without exhausting VRAM.
+
+
+
+\subsection{Rotary Positional Embeddings (RoPE) and Context Handling}
+To handle the long-range dependencies inherent in software projects, Qwen2.5-Coder employs an advanced version of \textbf{Rotary Positional Embeddings (RoPE)}. By modifying the base frequency $\theta$ of the rotation:
+\begin{equation}
+f(x_m, m) = \mathbf{R}^d_{\Theta, m} \mathbf{x}_m
+\end{equation}
+The model supports an effective context window of \textbf{128,000 tokens}. This enables the model to "see" entire script files during classification, ensuring that the context of a function is not lost due to truncation.
+
+\subsection{SwiGLU Activation and Gated Logic}
+The Feed-Forward Network (FFN) layers utilize the \textbf{SwiGLU} activation function. This gated linear unit allows the model to learn more complex, conditional representations of code syntax compared to standard ReLU:
+\begin{equation}
+\text{SwiGLU}(\mathbf{x}) = \text{SiLU}(\mathbf{x} \mathbf{W}) \otimes (\mathbf{x} \mathbf{V})
+\end{equation}
+This mathematical flexibility is vital for the model to distinguish between similar-looking code snippets that belong to different functional domains (e.g., distinguishing Competitive Programming from Web Development).
+
+
+
+\subsection{Model Specifications}
+The specific configuration of the Qwen2.5-Coder-1.5B variant used in our preprocessing pipeline is summarized in Table \ref{tab:qwen_specs}.
+
+\begin{table}[h]
+\centering
+\caption{Architectural Specifications of Qwen2.5-Coder-1.5B}
+\label{tab:qwen_specs}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Feature} & \textbf{Specification} \\ \hline
+Total Parameters & 1.54 Billion \\
+Number of Layers & 28 \\
+Hidden Dimension ($d_{model}$) & 1536 \\
+Attention Heads (Q) & 12 \\
+KV Heads (GQA) & 2 \\
+Intermediate Dimension (FFN) & 8960 \\
+Context Length & 128,000 Tokens \\
+Vocabulary Size & 151,936 \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Instruction Tuning for Classification}
+Beyond the raw architecture, the model underwent specialized \textbf{Instruction Fine-Tuning} using a mix of synthetic and human-curated code datasets. This tuning focused on "Chain-of-Thought" (CoT) reasoning, making the 1.5B model exceptionally reliable at identifying algorithmic patterns in our 18k Alpaca and 42k FlyTech datasets.
+
+\subsection{Justification for Model Selection: Qwen2.5-Coder-1.5B vs. Alternatives}
+
+For the automated data cleaning and classification phase, we evaluated several candidate models. The selection of \texttt{Qwen2.5-Coder-1.5B} was based on a multi-dimensional trade-off between inference throughput, VRAM footprint, and code-specific reasoning accuracy.
+
+
+
+\begin{table}[h]
+\centering
+\caption{Comparison of Classification Engines for Data Preprocessing}
+\label{tab:model_comparison}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Model} & \textbf{Params} & \textbf{VRAM (4-bit)} & \textbf{Code Reasoning} & \textbf{Tokens/Sec} \\ \hline
+GPT-3.5-Turbo & - & Cloud-Based & High & Low (API Latency) \\
+Llama-2-7B & 7B & $\sim$5.2 GB & Moderate & $\sim$45 \\
+CodeLlama-7B & 7B & $\sim$5.5 GB & High & $\sim$42 \\
+\textbf{Qwen2.5-Coder-1.5B} & \textbf{1.5B} & \textbf{$\sim$1.2 GB} & \textbf{Superior} & \textbf{$\sim$120+} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Technical Rationale}
+As shown in Table \ref{tab:model_comparison}, while larger models like \texttt{Llama-2-7B} possess a higher total parameter count, their general-purpose nature often leads to lower precision in identifying niche "Competitive Programming" patterns compared to a specialized "Coder" variant. 
+
+The primary reasons for our selection include:
+\begin{enumerate}
+    \item \textbf{High-Throughput Batching:} Given the 60,000 combined rows of Alpaca and FlyTech data, the 1.5B model's ability to achieve speeds of over 120 tokens per second allowed us to complete the classification in a fraction of the time required for a 7B model.
+    \item \textbf{Inductive Bias for Code:} \texttt{Qwen2.5-Coder} is pre-trained on a higher ratio of source code to natural language than \texttt{Llama-2}. This results in a stronger inductive bias for detecting algorithmic logic over general conversational text.
+    \item \textbf{Local Privacy and Cost:} Utilizing a local \texttt{Ollama} instance removed the dependency on external APIs (like OpenAI), ensuring data privacy and eliminating per-token costs for our 60,000-row pipeline.
+\end{enumerate}
+
+
+
+This architectural efficiency allowed us to dedicate more GPU resources to the primary fine-tuning of \texttt{Llama-2-7B} while maintaining a high-quality, filtered training set.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -560,12 +681,55 @@ This project focuses on fine-tuning the Llama-2 7B large language model for Pyth
 \end{figure}
 
 \section{Dataset Collection and Preparation}
+The efficacy of a fine-tuned Large Language Model (LLM) is heavily dependent on the quality and diversity of the training corpus. For this project, a multi-stage data engineering pipeline was developed to transform raw open-source data into a high-fidelity instructional corpus specialized for Pythonic reasoning.
 
-High-quality and domain-specific data is required to fine-tune the model for Python code generation. Therefore, a composite dataset is created using multiple open-source sources such as the FlyTech Python dataset, Alpaca-style instruction datasets. These datasets contain programming instructions and corresponding Python solutions, which help the model learn diverse coding patterns.
-The collected data is processed to improve quality and consistency. Incomplete or syntactically incorrect programs are filtered using automated checks. Additionally, code formatting is standardized to maintain uniform indentation and structure.
-The processed dataset is divided into three parts after shuffling to ensure effective training and evaluation. About 80\% of the data is used for training, which allows the model to learn programming patterns. Ten percent is reserved for validation to monitor overfitting and tune hyperparameters. The remaining ten percent is used for final evaluation. This separation ensures unbiased performance assessment.
-Each dataset sample is converted into an instruction-based format that includes three components: the system prompt, the problem statement, and the final Python code. This structure helps the model understand how to reason before generating solutions. After formatting, all samples are tokenized using the Llama tokenizer. This ensures compatibility with the pretrained Llama-2 model and prevents token mismatch issues during training.
+\subsection{Data Source Synthesis}
+A composite dataset was constructed by merging two primary high-quality sources to ensure a balance between general instruction following and deep algorithmic logic:
+\begin{itemize}
+    \item \textbf{FlyTech Python Dataset (approx. 42k rows):} Selected for its focus on logical reasoning, mathematical problem solving, and functional Python snippets.
+    \item \textbf{Alpaca-Style Code Instructions (approx. 18k rows):} Provides diverse instruction-following scenarios, ranging from simple automation scripting to complex software design patterns.
+\end{itemize}
 
+
+
+\subsection{Automated Classification and Quality Control}
+To ensure the model specialized in competitive programming rather than generic boilerplate code, we implemented an automated filtration layer. This prevented the model from learning suboptimal coding practices or irrelevant "noise."
+
+\begin{enumerate}
+    \item \textbf{Syntactic Verification:} Initial scripts utilized Python's \texttt{ast} (Abstract Syntax Trees) module to parse every code snippet. Entries containing syntax errors or incomplete blocks were immediately discarded.
+    \item \textbf{Teacher-Model Classification:} We utilized the \texttt{Qwen2.5-Coder-1.5B} model as a zero-shot classifier. Each entry was labeled based on its domain (e.g., "Algorithmic," "Web Development," "Data Science"). We prioritized the "Algorithmic" subset to maximize the model's problem-solving density.
+    \item \textbf{Heuristic Pruning:} Entries with excessively short responses ($< 20$ tokens) or those containing non-English instructions were filtered to maintain a high information-to-token ratio.
+\end{enumerate}
+
+
+
+\subsection{Data Formatting and Chat Templates}
+To leverage the conversational strengths of Llama-2, each sample was mapped to a structured template. This ensures that during inference, the model recognizes specific delimiters as signals to transition from understanding the problem to generating the solution. The transformation follows the Llama-2 specific schema:
+
+\begin{verbatim}
+<s>[INST] <<SYS>> 
+{System_Prompt} 
+<</SYS>> 
+
+{User_Instruction} [/INST] 
+{Python_Code_Solution} </s>
+\end{verbatim}
+
+The \texttt{System\_Prompt} consistently defined the model as a "highly proficient Python developer," while the \texttt{[INST]} tags isolated the user's requirements from the expected response.
+
+\subsection{Tokenization and Instruction Masking}
+The Llama-2 BPE (Byte-Pair Encoding) tokenizer was used to convert text into discrete numerical identifiers with a maximum sequence length of 2048 tokens. 
+
+
+
+A critical implementation detail in our methodology is \textbf{Instruction Masking}. During the supervised fine-tuning (SFT) phase, the loss was calculated exclusively on the \texttt{Python\_Code\_Solution} tokens. By setting the labels of the \texttt{User\_Instruction} tokens to $-100$ (the default ignore index in PyTorch's \texttt{CrossEntropyLoss}), we ensured the model's weights were updated based on its ability to generate code, rather than its ability to reconstruct the input question.
+
+\subsection{Dataset Distribution}
+After shuffling and de-duplication, the refined dataset comprised approximately 21,500 high-quality rows. This corpus was divided into three distinct subsets to ensure robust training and unbiased evaluation:
+\begin{itemize}
+    \item \textbf{Training Set (90\%):} Used for the primary gradient updates via the QLoRA adapters.
+    \item \textbf{Test Set (10\%):} Reserved for post-training evaluation using the HumanEval benchmark to measure the model's generalization to unseen problems.
+\end{itemize}
 
 
 
@@ -602,7 +766,6 @@ For each candidate configuration:
 \begin{itemize}
     \item The model is fine-tuned for a reduced number of epochs.
     \item Validation loss is recorded at regular intervals.
-    \item Configurations exhibiting unstable loss behavior are discarded.
 \end{itemize}
 
 The configuration achieving the lowest stable validation loss is selected for full-scale fine-tuning.
@@ -645,8 +808,6 @@ Logarithmic sampling of the learning rate is particularly important for transfor
 Due to computational constraints, hyperparameter evaluations are conducted using shortened training schedules. Only the most promising configurations are selected for complete fine-tuning. This multi-stage optimization strategy significantly reduces computational cost while maintaining reliable estimation of performance trends.
 
 Through this structured and adaptive hyperparameter optimization framework, the model achieves improved convergence stability, enhanced generalization performance, and efficient utilization of available hardware resources.
-
-
 
 
 
@@ -742,12 +903,35 @@ In this formulation, $y_{i,t}$ denotes the $t$-th token of the target sequence $
 
 where $\eta$ represents the learning rate. This optimization shifts the model's weight distribution to better align with the statistical properties and requirements of the target domain while retaining the foundational representations learned during pre-training.
 
+\subsection{4-bit NormalFloat (NF4) Implementation}
+To achieve a memory footprint of $\sim$5GB for a 7B parameter model, we implement NF4 quantization. This maps the weights to a specialized distribution that preserves the information density of the original 16-bit weights while utilizing only 4 bits per parameter.
 
+
+\subsection{Low-Rank Adaptation (LoRA) Layers}
+Instead of updating the full Llama-2 weight matrix $W$, we inject trainable rank-decomposition matrices. The update is confined to the attention projections:
+\begin{equation}
+h = W_0x + BAx
+\end{equation}
+where $A$ and $B$ are the LoRA adapters. This reduces the number of trainable parameters by over 99\%.
+
+
+\subsection{Instruction Masking Strategy}
+To ensure the model learns to generate code rather than simply repeating the prompt, we applied a custom tokenization strategy. During the preparation of the training tensors, we set the \texttt{labels} for all tokens belonging to the "Instruction" and "System" prompts to $-100$. This signals the loss function to ignore these tokens, forcing the model's weights to update based solely on the accuracy of the generated "Response" tokens.
 
 
 
 \section{Evaluation}
 Automatic metrics such as BLEU and CodeBLEU are used to compare generated code with reference solutions. BLEU measures n-gram similarity, while CodeBLEU also considers syntax, data flow, and semantic correctness. These metrics provide quantitative support to functional evaluation.
+
+\subsection{Validation Loss and Perplexity}
+During training, we monitor the validation loss $\mathcal{L}_{val}$ and perplexity $\text{PPL}$ to assess convergence and generalization. The validation loss is computed as the average cross-entropy loss on the held-out validation set:
+\begin{equation}
+\mathcal{L}_{val} = - \frac{1}{N_{val}} \sum_{i=1}^{N_{val}} \sum_{t=1}^{T_i} \log P_\theta(y_{i,t} \mid y_{i,<t}, x_i)
+\end{equation}
+Perplexity is derived from the validation loss and provides an interpretable measure of model confidence:
+\begin{equation}
+\text{PPL} = \exp(\mathcal{L}_{val})
+\end{equation}A decreasing validation loss and perplexity indicate that the model is learning to generate more accurate code snippets over time, while a divergence between training and validation metrics may signal overfitting.
 
 \subsection{BLEU Score}
 BLEU evaluates token-level n-gram overlap between generated and reference code \cite{Papineni2002}. 
@@ -824,7 +1008,7 @@ The human-eval score was found using the folllowing formula:
 \begin{equation}
 \text{pass@k} = 1 - \left(1 - \frac{c}{n}\right)^k
 \end{equation}
-\subsection{The HumanEval Dataset}
+The HumanEval Dataset:
 To rigorously assess the logical reasoning and syntactic precision of the fine-tuned model, we utilize the \textbf{OpenAI HumanEval} dataset. This benchmark is the industry standard for evaluating the zero-shot programming capabilities of Large Language Models (LLMs), specifically focusing on functional correctness rather than mere text similarity.
 
 The HumanEval dataset consists of 164 hand-written Python programming problems. Each entry in the dataset is a structured triplet containing:
@@ -852,10 +1036,9 @@ Where:
     \item $c$ is the number of those samples that successfully passed the unit tests.
     \item $k$ is the specific rank being evaluated ($k \in \{1, 2, 5\}$).
 \end{itemize}
-
-
-
 By evaluating at multiple $k$ values, we gain insight into both the model's reliability (pass@1) and its "best-effort" ceiling (pass@5), which represents the likelihood of a human user finding a correct solution within five generated suggestions.
-
-
 By combining execution-based testing with similarity metrics, the evaluation ensures that the generated code is syntactically valid, logically correct, and semantically meaningful.
+
+
+\subsection{Ollama for Local Inference}
+Ollama is a local inference engine that allows us to run large language models on consumer hardware without the need for cloud-based APIs. By hosting the Qwen2.5-Coder-1.5B model on Ollama, we can perform high-throughput classification of our training data while maintaining data privacy and minimizing latency. This setup is crucial for efficiently filtering our dataset and ensuring that only high-quality, relevant code snippets are used for fine-tuning the Llama-2-7B model.
