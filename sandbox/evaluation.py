@@ -1,126 +1,202 @@
 import json
 import subprocess
+import tempfile
 import os
+import shutil
+import uuid
+import re
 
-IMAGE = "python-sandbox"
+
+# ==============================
+# Clean Model Code
+# ==============================
+
+def clean_code(code):
+    code = code.strip()
+
+    if code.startswith("```"):
+        code = re.sub(r"^```[a-zA-Z]*", "", code)
+        code = code.rstrip("```")
+
+    return code.strip()
 
 
-def run_in_docker(code, test_input, limits):
+# ==============================
+# Docker Execution
+# ==============================
 
-    wrapped_code = f"""
-import sys
-import ast
+def run_in_docker(code, input_data, problem_data):
 
-# -------- USER CODE --------
-{code}
-# ---------------------------
+    temp_dir = tempfile.mkdtemp()
+    file_path = os.path.join(temp_dir, "solution.py")
 
-# Find solve() function
-tree = ast.parse(\"\"\"{code}\"\"\")
-has_solve = False
+    cleaned_code = clean_code(code)
 
-for node in tree.body:
-    if isinstance(node, ast.FunctionDef) and node.name == "solve":
-        has_solve = True
-        break
+    with open(file_path, "w") as f:
+        f.write(cleaned_code)
 
-if not has_solve:
-    print("NO_SOLVE_FUNCTION")
-    exit()
+    container_name = f"eval_{uuid.uuid4().hex}"
 
-# Read full input as ONE string
-data = sys.stdin.read()
-
-# Call solve(data)
-try:
-    result = solve(data)
-except Exception as e:
-    print("RUNTIME_ERROR:", e)
-    exit()
-
-# Print output
-if result is not None:
-    print(result)
-"""
-
-    payload = {
-        "code": wrapped_code,
-        "input": test_input,
-        "time_limit_ms": limits.get("time_limit_ms", 2000)
-    }
-
-    cmd = [
-        "docker", "run", "--rm", "-i",
-        "--network", "none",
-        "--memory", "256m",
-        IMAGE
-    ]
+    time_limit_sec = problem_data.get("time_limit_ms", 2000) / 1000
+    memory_limit_kb = problem_data.get("memory_limit_kb", 262144)
 
     try:
-        proc = subprocess.run(
-            cmd,
-            input=json.dumps(payload),
+        command = [
+            "docker", "run",
+            "--rm",
+            "-i",                         # IMPORTANT: keep stdin open
+            "--name", container_name,
+            "--memory", f"{memory_limit_kb}k",
+            "--network", "none",
+            "-v", f"{temp_dir}:/app",
+            "python:3.10",
+            "bash", "-c",
+            f"timeout {time_limit_sec}s python /app/solution.py"
+        ]
+
+        process = subprocess.run(
+            command,
+            input=input_data,             # feed input here
             text=True,
-            capture_output=True,
-            timeout=(payload["time_limit_ms"] / 1000) + 2
+            capture_output=True
         )
 
-        if proc.returncode != 0:
-            return {"status": "docker_error", "error": proc.stderr}
+        if process.returncode == 124:
+            return {"status": "tle", "result": ""}
 
-        return json.loads(proc.stdout)
+        if process.returncode != 0:
+            return {
+                "status": "re",
+                "result": process.stderr.strip()
+            }
 
-    except subprocess.TimeoutExpired:
-        return {"status": "TLE", "error": "Timeout"}
+        return {
+            "status": "ok",
+            "result": process.stdout.strip()
+        }
 
     except Exception as e:
-        return {"status": "error", "error": str(e)}
+        return {"status": "re", "result": str(e)}
+
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 
-def test_solution(problem_data, student_code):
+# ==============================
+# Evaluate Single Problem
+# ==============================
 
-    print(f"\n--- Testing Problem: {problem_data['name']} ---")
+def evaluate_problem(problem_data, dataset_lookup):
 
-    all_passed = True
+    problem_name = problem_data["name"]
+    student_code = problem_data["generated_code"]
 
-    for i, test in enumerate(problem_data["tests"]):
+    dataset_info = dataset_lookup.get(problem_name, {})
+
+    tests = problem_data.get("tests", [])
+    total_tests = len(tests)
+
+    passed = wa = tle = re_count = 0
+
+    print(f"\n=== {problem_name} ===")
+
+    for index, test in enumerate(tests):
 
         response = run_in_docker(
             student_code,
             test["input"],
-            problem_data
+            dataset_info
         )
 
-        actual = str(response.get("result", "")).strip()
+        # 🔴 If Runtime Error → terminate immediately
+        if response["status"] == "re":
+            print("Runtime Error:")
+            print(response["result"])
+
+            re_count = total_tests
+            passed = 0
+            wa = 0
+            tle = 0
+
+            print(f"Score: 0/{total_tests}")
+            print(f"WA: 0 | TLE: 0 | RE: {total_tests}")
+
+            return {
+                "passed": 0,
+                "total": total_tests,
+                "wa": 0,
+                "tle": 0,
+                "re": total_tests
+            }
+
         expected = str(test["output"]).strip()
+        actual = str(response["result"]).strip()
 
-        if response.get("status") == "ok" and actual == expected:
+        if response["status"] == "ok":
+            if actual == expected:
+                passed += 1
+            else:
+                wa += 1
 
-            print(f"Test {i}: PASSED ({response['runtime_ms']:.2f} ms)")
+        elif response["status"] == "tle":
+            tle += 1
 
-        else:
-            all_passed = False
+    print(f"Score: {passed}/{total_tests}")
+    print(f"WA: {wa} | TLE: {tle} | RE: {re_count}")
 
-            print(f"Test {i}: FAILED")
-            print(f"   Status:   {response.get('status')}")
-            print(f"   Error:    {response.get('error')}")
-            print(f"   Expected: {expected}")
-            print(f"   Got:      {actual}")
+    return {
+        "passed": passed,
+        "total": total_tests,
+        "wa": wa,
+        "tle": tle,
+        "re": re_count
+    }
+# ==============================
+# Main
+# ==============================
 
-    return all_passed
+def main():
+
+    with open("codecontests_bell_200.json", "r") as f:
+        dataset = json.load(f)
+
+    dataset_lookup = {
+        problem["name"]: problem
+        for problem in dataset
+    }
+
+    with open("generated_results.json", "r") as f:
+        problems = json.load(f)
+
+    overall_passed = 0
+    overall_total = 0
+    overall_wa = 0
+    overall_tle = 0
+    overall_re = 0
+
+    for problem in problems:
+        result = evaluate_problem(problem, dataset_lookup)
+
+        overall_passed += result["passed"]
+        overall_total += result["total"]
+        overall_wa += result["wa"]
+        overall_tle += result["tle"]
+        overall_re += result["re"]
+
+    print("\n==============================")
+    print("FINAL RESULT")
+    print("==============================")
+    print(f"Total Score: {overall_passed}/{overall_total}")
+
+    if overall_total > 0:
+        accuracy = (overall_passed / overall_total) * 100
+        print(f"Accuracy: {accuracy:.2f}%")
+
+    print(f"Total WA: {overall_wa}")
+    print(f"Total TLE: {overall_tle}")
+    print(f"Total RE: {overall_re}")
+    print("==============================")
 
 
 if __name__ == "__main__":
-
-    # Load problems
-    with open("codecontests_bell_200.json", "r") as f:
-        problems = json.load(f)
-
-    # Load generated model code
-    with open("generated_code.txt", "r") as f:
-        code_to_test = f.read()
-
-    # Test first problem
-    success = test_solution(problems[0], code_to_test)
-
-    print("\nOverall Result:", "SUCCESS" if success else "FAILURE")
+    main()

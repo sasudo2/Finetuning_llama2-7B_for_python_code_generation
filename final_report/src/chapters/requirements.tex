@@ -38,14 +38,9 @@ The implementation relies on a specialized ecosystem of Python libraries designe
 \begin{itemize}
     \item \textbf{PEFT (Parameter-Efficient Fine-Tuning):} 
     Enables \textbf{LoRA (Low-Rank Adaptation)}. By freezing the 7-billion base parameters and training only small adapters (Rank $r=8$), the memory requirement for gradients is reduced by over 90\%. 
-    
-    
-
     \item \textbf{BitsAndBytes:} 
     Provides the backend for \textbf{4-bit Quantization (NF4)}. It includes "Double Quantization" and "Paged Optimizers," which allow the model to operate within 24GB VRAM by offloading optimizer states to CPU RAM during memory spikes.
     
-    
-
     \item \textbf{Transformers \& TRL:} 
     Hugging Face's core libraries for model loading (\texttt{AutoModelForCausalLM}) and tokenization. The \texttt{Trainer} API was used to orchestrate the training loop and handle gradient accumulation.
 
