@@ -1,105 +1,202 @@
 import json
 import subprocess
-import requests
-from code_extractor import extract_function
+import tempfile
+import os
+import shutil
+import uuid
+import re
 
-IMAGE = "python-sandbox"
 
-def generate_code(prompt):
-    response = requests.post('http://localhost:5000/generate', json={'prompt': prompt})
-    return response.json()['code']
+# ==============================
+# Clean Model Code
+# ==============================
 
-def run_in_docker(code, fn_name, test, limits):
-    payload = {
-        "code": code,
-        "fn_name": fn_name,
-        "input": test["input"],
-        "time_limit_ms": limits["time_limit_ms"]
-    }
+def clean_code(code):
+    code = code.strip()
 
-    cmd = [
-        "docker", "run", "--rm", "-i",
-        "--network", "none",
-        "--memory", f"{limits['memory_limit_kb']}k",
-        "--cpus", "1",
-        IMAGE
-    ]
+    if code.startswith("```"):
+        code = re.sub(r"^```[a-zA-Z]*", "", code)
+        code = code.rstrip("```")
 
-    proc = subprocess.run(
-        cmd,
-        input=json.dumps(payload),
-        text=True,
-        capture_output=True,
-        timeout=limits["time_limit_ms"] / 1000 + 2
-    )
+    return code.strip()
 
-    if proc.returncode != 0:
-        print(f"Docker error: {proc.stderr}")
-        return {"status": "docker_error", "error": proc.stderr}
-    
-    if not proc.stdout.strip():
-        print(f"Empty docker output for fn {fn_name}")
-        return {"status": "docker_error", "error": "Empty output"}
-    
-    return json.loads(proc.stdout)
 
-def run_problem(problem):
-    prompt = f"{problem['prompt']}\n{problem['function_signature']}"
-    system_prompt = """You are an expert Python programmer. Your task is to generate correct, efficient Python code.
-    - Write only the function implementation
-    - Do not include markdown code blocks
-    - Do not include explanations
-    - The code must be syntactically correct
-    - There must be proper indentation.
-    - you will be given function signature 
-    - create the program that fits into the function signature.
-    - always enclose code only between ``` and ```.
-    - Do not reason
-    - Do not give any examples
-    """
-    
-    # Combine system prompt with user prompt
-    full_prompt = f"[INST]<<SYS>>{system_prompt}<</SYS>>\n{prompt}[/INST]"
-    
-    model_output = generate_code(full_prompt)
-    
-    # Append generated output to file
-    with open("generated_outputs.txt", "a") as f:
-        f.write(f"\n{'='*80}\n")
-        f.write(f"Problem ID: {problem['id']}\n")
-        f.write(f"{'='*80}\n")
-        f.write(model_output)
-        f.write("\n")
+# ==============================
+# Docker Execution
+# ==============================
 
-    fn_name = problem["function_signature"].split("(")[0].replace("def ", "").strip()
+def run_in_docker(code, input_data, problem_data):
+
+    temp_dir = tempfile.mkdtemp()
+    file_path = os.path.join(temp_dir, "solution.py")
+
+    cleaned_code = clean_code(code)
+
+    with open(file_path, "w") as f:
+        f.write(cleaned_code)
+
+    container_name = f"eval_{uuid.uuid4().hex}"
+
+    time_limit_sec = problem_data.get("time_limit_ms", 2000) / 1000
+    memory_limit_kb = problem_data.get("memory_limit_kb", 262144)
+
     try:
-        code = extract_function(model_output, fn_name)
-    except Exception as e:
-        print(f"Extraction error for {fn_name}: {e}")
-        return {"id": problem["id"], "status": "compile_error", "error": str(e)}
+        command = [
+            "docker", "run",
+            "--rm",
+            "-i",                         # IMPORTANT: keep stdin open
+            "--name", container_name,
+            "--memory", f"{memory_limit_kb}k",
+            "--network", "none",
+            "-v", f"{temp_dir}:/app",
+            "python:3.10",
+            "bash", "-c",
+            f"timeout {time_limit_sec}s python /app/solution.py"
+        ]
 
-    for test in problem["hidden_tests"]:
-        result = run_in_docker(
-            code,
-            fn_name,
-            test,
-            problem
+        process = subprocess.run(
+            command,
+            input=input_data,             # feed input here
+            text=True,
+            capture_output=True
         )
 
-        if result["status"] != "ok":
-            return {"id": problem["id"], "status": result["status"]}
+        if process.returncode == 124:
+            return {"status": "tle", "result": ""}
 
-        if result["result"] != test["output"]:
-            return {"id": problem["id"], "status": "wrong_answer"}
+        if process.returncode != 0:
+            return {
+                "status": "re",
+                "result": process.stderr.strip()
+            }
 
-    return {"id": problem["id"], "status": "accepted"}
+        return {
+            "status": "ok",
+            "result": process.stdout.strip()
+        }
+
+    except Exception as e:
+        return {"status": "re", "result": str(e)}
+
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+# ==============================
+# Evaluate Single Problem
+# ==============================
+
+def evaluate_problem(problem_data, dataset_lookup):
+
+    problem_name = problem_data["name"]
+    student_code = problem_data["generated_code"]
+
+    dataset_info = dataset_lookup.get(problem_name, {})
+
+    tests = problem_data.get("tests", [])
+    total_tests = len(tests)
+
+    passed = wa = tle = re_count = 0
+
+    print(f"\n=== {problem_name} ===")
+
+    for index, test in enumerate(tests):
+
+        response = run_in_docker(
+            student_code,
+            test["input"],
+            dataset_info
+        )
+
+        # 🔴 If Runtime Error → terminate immediately
+        if response["status"] == "re":
+            print("Runtime Error:")
+            print(response["result"])
+
+            re_count = total_tests
+            passed = 0
+            wa = 0
+            tle = 0
+
+            print(f"Score: 0/{total_tests}")
+            print(f"WA: 0 | TLE: 0 | RE: {total_tests}")
+
+            return {
+                "passed": 0,
+                "total": total_tests,
+                "wa": 0,
+                "tle": 0,
+                "re": total_tests
+            }
+
+        expected = str(test["output"]).strip()
+        actual = str(response["result"]).strip()
+
+        if response["status"] == "ok":
+            if actual == expected:
+                passed += 1
+            else:
+                wa += 1
+
+        elif response["status"] == "tle":
+            tle += 1
+
+    print(f"Score: {passed}/{total_tests}")
+    print(f"WA: {wa} | TLE: {tle} | RE: {re_count}")
+
+    return {
+        "passed": passed,
+        "total": total_tests,
+        "wa": wa,
+        "tle": tle,
+        "re": re_count
+    }
+# ==============================
+# Main
+# ==============================
 
 def main():
-    problems = json.load(open("leetcode_eval_set.json"))
-    results = [run_problem(p) for p in problems]
 
-    json.dump(results, open("results.json", "w"), indent=2)
-    print("Evaluation finished")
+    with open("codecontests_bell_200.json", "r") as f:
+        dataset = json.load(f)
+
+    dataset_lookup = {
+        problem["name"]: problem
+        for problem in dataset
+    }
+
+    with open("generated_results.json", "r") as f:
+        problems = json.load(f)
+
+    overall_passed = 0
+    overall_total = 0
+    overall_wa = 0
+    overall_tle = 0
+    overall_re = 0
+
+    for problem in problems:
+        result = evaluate_problem(problem, dataset_lookup)
+
+        overall_passed += result["passed"]
+        overall_total += result["total"]
+        overall_wa += result["wa"]
+        overall_tle += result["tle"]
+        overall_re += result["re"]
+
+    print("\n==============================")
+    print("FINAL RESULT")
+    print("==============================")
+    print(f"Total Score: {overall_passed}/{overall_total}")
+
+    if overall_total > 0:
+        accuracy = (overall_passed / overall_total) * 100
+        print(f"Accuracy: {accuracy:.2f}%")
+
+    print(f"Total WA: {overall_wa}")
+    print(f"Total TLE: {overall_tle}")
+    print(f"Total RE: {overall_re}")
+    print("==============================")
+
 
 if __name__ == "__main__":
     main()
