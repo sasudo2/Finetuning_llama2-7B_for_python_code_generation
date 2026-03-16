@@ -1,9 +1,6 @@
 \chapter{SYSTEM ARCHITECTURE AND METHODOLOGY}
 
-\section*{SYSTEM ARCHITECTURE}
-
-
-\section{What is LLaMA-2?}
+\section{SYSTEM ARCHITECTURE of LLaMA-2}
 LLaMA-2 (Large Language Model Meta AI) is a family of large-scale transformer-based
 language models developed by Meta. It is designed to generate human-like text by
 learning statistical patterns from large corpora of textual data. LLaMA-2 models are
@@ -15,7 +12,7 @@ text generation, question answering, summarization, and code generation.
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.5\textwidth]{src/images/figures/model.jpg}
-    \caption{LLaMA}
+    \caption{LLaMA-2 architecture}
     \label{fig:llama}
 \end{figure}
 
@@ -107,15 +104,37 @@ performed during pre-training to better understand the strengths and
 limitations of the resulting models, as reported in the LLaMA-2 evaluation
 studies.
 
+\subsection{Chat Model of LLaMA 2}
+
+The chat model of LLaMA 2 is a specialized version of the base LLaMA 2 large language model developed by Meta AI for conversational tasks. Unlike the base model, which is trained primarily on raw text for general language understanding and generation, the chat model is fine-tuned specifically for dialogue interactions so it can respond in a helpful, safe, and context-aware manner.
+
+The chat variant, commonly referred to as \textit{LLaMA-2-Chat}, is trained using a technique called Supervised Fine-Tuning (SFT) followed by Reinforcement Learning with Human Feedback (RLHF). In supervised fine-tuning, the model learns from high-quality example conversations written by human annotators. After that, reinforcement learning is applied where human evaluators rank different responses, allowing the model to learn which responses are more helpful, accurate, and aligned with human preferences.
+
+To structure conversations, the chat model uses a prompt template that includes system instructions and user messages. A typical format uses special tokens such as \texttt{[INST]} and \texttt{[/INST]} to mark the user's instruction. This format helps the model distinguish between instructions and responses during both training and inference.
+
+\begin{verbatim}
+<s>[INST] Explain recursion in simple terms. [/INST]
+Recursion is a programming technique where a function calls itself
+to solve smaller parts of the same problem.
+</s>
+\end{verbatim}
+
+The chat model is designed to maintain conversational context across multiple turns, making it suitable for applications such as virtual assistants, chatbots, coding assistants, tutoring systems, and question-answering systems. Compared to the base LLaMA 2 model, the chat version typically produces responses that are more structured, instruction-following, and aligned with user intent.
+
+In summary, the chat model of LLaMA 2 enhances the base language model by incorporating dialogue-focused fine-tuning and human feedback mechanisms, enabling it to generate coherent, context-aware, and user-aligned conversational responses.
+
+
 \subsection{Laws of scaling}
 Scaling laws describe predictable patterns in how a model’s performance changes when you scale three main aspects:
-1. Model size (parameters)
-2. Dataset size (training tokens/examples)
-3. Compute (FLOPs / training steps)
+\begin{itemize}
+    \item Model size (parameters)
+    \item Dataset size (training tokens/examples)
+    \item Compute (FLOPs / training steps)
+\end{itemize}
 The core idea, originally discovered in neural language models, is:
 When you increase model size, data size, and compute in suitable proportions, error decreases according to a power-law relationship.
 
-Mathematical Formulation of Scaling Laws
+\subsubsection{Mathematical Formulation of Scaling Laws}
 
 Empirical studies in large language models have demonstrated that model performance follows predictable power-law relationships with respect to model size, dataset size, and compute. The general scaling law for model parameters can be expressed as:
 
@@ -177,7 +196,7 @@ In this work, the base LLaMA-2 7B model is not scaled in parameter size due to c
 
 According to scaling law principles, improving data quality and maintaining balanced compute usage is expected to yield more stable performance gains than increasing model parameters under limited hardware resources.
 
-\subsubsection{Training Configuration}
+\subsection{Training Configuration}
 LLaMA-2 largely adopts the pre-training setup and architectural design of LLaMA-1,
 while introducing several key improvements. The model
 uses a standard transformer architecture with
@@ -353,6 +372,12 @@ The outputs from all heads are then concatenated and linearly transformed using 
 This parallel processing allows the model to capture various linguistic features, such as syntactic dependencies and contextual nuances, more effectively than a single-head attention mechanism.
 
 \subsection{Rotary Positional Embeddings (RoPE)}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/RoPE.png}
+    \caption{Rotary Positional Embeddings}
+    \label{fig:Rotary Positional Embeddings}
+\end{figure}
 Rotary Positional Embeddings (RoPE) is a technique utilized to encode positional information in transformer-based models like LLaMA-2. Unlike traditional positional encodings that are additively combined with token embeddings, RoPE applies a geometric rotation to the query and key vectors based on their absolute positions in the sequence. 
 
 This mechanism leverages complex numbers, where the rotation is represented by cosine and sine functions. RoPE is particularly effective because it allows the attention mechanism to capture relative positional relationships implicitly, enabling the model to generalize to sequence lengths exceeding the context window used during training.
@@ -565,6 +590,13 @@ def factorial(n):
 
 \section{System Architecture: Qwen2.5-Coder-1.5B}
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/quen-model.png}
+    \caption{Qwen2.5-Coder-1.5B Model Architecture}
+    \label{fig:Qwen2.5-Coder-1.5B Model Architecture}
+\end{figure}
+
 The \texttt{Qwen2.5-Coder-1.5B} model is a specialized decoder-only language model from the Qwen-2.5 family, specifically engineered for high-precision code intelligence. Despite its compact footprint of 1.54 billion parameters, it incorporates state-of-the-art structural optimizations that allow it to rival larger general-purpose models in code classification and generation tasks.
 
 
@@ -670,16 +702,6 @@ This architectural efficiency allowed us to dedicate more GPU resources to the p
 
 
 
-\section*{METHODOLOGY}
-
-This project focuses on fine-tuning the Llama-2 7B large language model for Python code generation. The overall methodology is divided into three main stages: dataset preparation, model fine-tuning, and evaluation. First, suitable programming datasets are collected and processed. Then, the pretrained Llama-2 model is fine-tuned using the QLoRA technique to reduce memory usage. Finally, the trained model is evaluated using functional and automatic metrics to measure its performance.
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/methodology.png}
-    \caption{Methodology}
-    \label{fig:Methodology of the project}
-\end{figure}
-
 \section{Dataset Collection and Preparation}
 The efficacy of a fine-tuned Large Language Model (LLM) is heavily dependent on the quality and diversity of the training corpus. For this project, a multi-stage data engineering pipeline was developed to transform raw open-source data into a high-fidelity instructional corpus specialized for Pythonic reasoning.
 
@@ -698,7 +720,7 @@ To ensure the model specialized in competitive programming rather than generic b
 \begin{enumerate}
     \item \textbf{Syntactic Verification:} Initial scripts utilized Python's \texttt{ast} (Abstract Syntax Trees) module to parse every code snippet. Entries containing syntax errors or incomplete blocks were immediately discarded.
     \item \textbf{Teacher-Model Classification:} We utilized the \texttt{Qwen2.5-Coder-1.5B} model as a zero-shot classifier. Each entry was labeled based on its domain (e.g., "Algorithmic," "Web Development," "Data Science"). We prioritized the "Algorithmic" subset to maximize the model's problem-solving density.
-    \item \textbf{Heuristic Pruning:} Entries with excessively short responses ($< 20$ tokens) or those containing non-English instructions were filtered to maintain a high information-to-token ratio.
+    \item \textbf{Heuristic Pruning:} Entries with excessively short responses were filtered to maintain a high information-to-token ratio.
 \end{enumerate}
 
 
@@ -725,7 +747,7 @@ The Llama-2 BPE (Byte-Pair Encoding) tokenizer was used to convert text into dis
 A critical implementation detail in our methodology is \textbf{Instruction Masking}. During the supervised fine-tuning (SFT) phase, the loss was calculated exclusively on the \texttt{Python\_Code\_Solution} tokens. By setting the labels of the \texttt{User\_Instruction} tokens to $-100$ (the default ignore index in PyTorch's \texttt{CrossEntropyLoss}), we ensured the model's weights were updated based on its ability to generate code, rather than its ability to reconstruct the input question.
 
 \subsection{Dataset Distribution}
-After shuffling and de-duplication, the refined dataset comprised approximately 21,500 high-quality rows. This corpus was divided into three distinct subsets to ensure robust training and unbiased evaluation:
+After shuffling and de-duplication, the refined dataset was divided into two distinct subsets to ensure robust training and unbiased evaluation:
 \begin{itemize}
     \item \textbf{Training Set (90\%):} Used for the primary gradient updates via the QLoRA adapters.
     \item \textbf{Test Set (10\%):} Reserved for post-training evaluation using the HumanEval benchmark to measure the model's generalization to unseen problems.
@@ -832,9 +854,22 @@ Let $\mathbf{W} \in \mathbb{R}^{d \times k}$ represent the pre-trained weight ma
 
 In this expression, $Q(\cdot)$ denotes the quantization function that maps high-precision (32-bit or 16-bit) weights into a 4-bit integer space. This process reduces the storage requirements for the backbone weights by approximately 8 times, allowing the model to remain resident in memory during the fine-tuning of the adapter layers.
 
-\subsection{4-bit NormalFloat (NF4) and Memory Optimization}To achieve the goal of fitting the Llama-2-7b model into approximately 5GB of VRAM, we move beyond standard linear quantization to \textbf{4-bit NormalFloat (NF4)} and \textbf{Double Quantization}.\subsubsection{4-bit NormalFloat (NF4) Data Type}The weights of pre-trained LLMs typically follow a zero-centered normal distribution with a standard deviation $\sigma$. NF4 is an information-theoretically optimal data type built on \textit{Quantile Quantization}. Instead of mapping weights to an evenly spaced grid, NF4 maps them to the quantiles of a theoretical $N(0, 1)$ distribution.The quantization constants are calculated such that each of the 16 discrete levels in the 4-bit bin has an equal expected number of values. For a weight $w$, the NF4 quantization is expressed as:\begin{equation}q_i = \frac{1}{2} \left( Q_z\left(\frac{i}{2^k+1}\right) + Q_z\left(\frac{i+1}{2^k+1}\right) \right)\end{equation}where $Q_z(\cdot)$ is the cumulative distribution function (CDF) of the standard normal distribution. This ensures that the precision is highest where the weight density is greatest (near zero), significantly reducing the quantization error compared to standard 4-bit integers or floats.\subsubsection{Double Quantization (DQ)}While NF4 reduces the weight size, the \textit{quantization constants} (the scaling factors used for each block of weights) still consume significant VRAM. In a standard setup, a block size of 64 requires a 32-bit constant for every 64 weights, adding roughly 0.5 bits per parameter.\textbf{Double Quantization} treats these 32-bit constants as inputs to a \textit{second} layer of quantization. These constants are quantized into 8-bit floats ($FP8$) with a secondary block size of 256. The memory savings are calculated as:\begin{equation}\text{Memory Savings} = \underbrace{\frac{32}{64}}{\text{Single Quant}} - \underbrace{\left( \frac{8}{64} + \frac{32}{64 \cdot 256} \right)}{\text{Double Quant}} \approx 0.37 \text{ bits per parameter}\end{equation}By implementing DQ, the overhead of quantization constants is reduced from 0.5 bits/set to approximately 0.127 bits/set, allowing the total memory footprint of the Llama-2-7b model to drop to $\sim$4.8GB, well within the limits of consumer-grade hardware like the NVIDIA T4 or L4.\subsubsection{Paged Optimizers}To further prevent Out-of-Memory (OOM) errors during the backward pass, we utilize \textbf{Paged Optimizers} via the \texttt{bitsandbytes} library. This mechanism leverages NVIDIA's Unified Memory feature to map the optimizer states (e.g., AdamW moments) to the CPU RAM when the GPU's VRAM is exhausted, and pages them back during the update step. This provides a safety net for the 512-token sequence lengths used in our code generation tasks.
+\subsection{4-bit NormalFloat (NF4) and Memory Optimization}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/double quantization.png}
+    \caption{Double Quantization}
+    \label{fig:Double Quantization}
+\end{figure}
+To achieve the goal of fitting the Llama-2-7b model into approximately 5GB of VRAM, we move beyond standard linear quantization to \textbf{4-bit NormalFloat (NF4)} and \textbf{Double Quantization}.\subsubsection{4-bit NormalFloat (NF4) Data Type}The weights of pre-trained LLMs typically follow a zero-centered normal distribution with a standard deviation $\sigma$. NF4 is an information-theoretically optimal data type built on \textit{Quantile Quantization}. Instead of mapping weights to an evenly spaced grid, NF4 maps them to the quantiles of a theoretical $N(0, 1)$ distribution.The quantization constants are calculated such that each of the 16 discrete levels in the 4-bit bin has an equal expected number of values. For a weight $w$, the NF4 quantization is expressed as:\begin{equation}q_i = \frac{1}{2} \left( Q_z\left(\frac{i}{2^k+1}\right) + Q_z\left(\frac{i+1}{2^k+1}\right) \right)\end{equation}where $Q_z(\cdot)$ is the cumulative distribution function (CDF) of the standard normal distribution. This ensures that the precision is highest where the weight density is greatest (near zero), significantly reducing the quantization error compared to standard 4-bit integers or floats.\subsubsection{Double Quantization (DQ)}While NF4 reduces the weight size, the \textit{quantization constants} (the scaling factors used for each block of weights) still consume significant VRAM. In a standard setup, a block size of 64 requires a 32-bit constant for every 64 weights, adding roughly 0.5 bits per parameter.\textbf{Double Quantization} treats these 32-bit constants as inputs to a \textit{second} layer of quantization. These constants are quantized into 8-bit floats ($FP8$) with a secondary block size of 256. The memory savings are calculated as:\begin{equation}\text{Memory Savings} = \underbrace{\frac{32}{64}}{\text{Single Quant}} - \underbrace{\left( \frac{8}{64} + \frac{32}{64 \cdot 256} \right)}{\text{Double Quant}} \approx 0.37 \text{ bits per parameter}\end{equation}By implementing DQ, the overhead of quantization constants is reduced from 0.5 bits/set to approximately 0.127 bits/set, allowing the total memory footprint of the Llama-2-7b model to drop to $\sim$4.8GB, well within the limits of consumer-grade hardware like the NVIDIA T4 or L4.\subsubsection{Paged Optimizers}To further prevent Out-of-Memory (OOM) errors during the backward pass, we utilize \textbf{Paged Optimizers} via the \texttt{bitsandbytes} library. This mechanism leverages NVIDIA's Unified Memory feature to map the optimizer states (e.g., AdamW moments) to the CPU RAM when the GPU's VRAM is exhausted, and pages them back during the update step. This provides a safety net for the 512-token sequence lengths used in our code generation tasks.
 
 \subsubsection{Low-Rank Adaptation (LoRA)}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/lora2.png}
+    \caption{LoRA Architecture}
+    \label{fig:LoRA Architecture}
+\end{figure}
 Instead of updating the entire quantized matrix $\mathbf{W}_q$, which remains frozen, LoRA introduces trainable low-rank matrices $\mathbf{A} \in \mathbb{R}^{d \times r}$ and $\mathbf{B} \in \mathbb{R}^{r \times k}$ where the rank $r \ll \min(d,k)$. The adapted weight matrix is expressed as:
 
 \begin{equation}
@@ -923,15 +958,12 @@ To ensure the model learns to generate code rather than simply repeating the pro
 \section{Evaluation}
 Automatic metrics such as BLEU and CodeBLEU are used to compare generated code with reference solutions. BLEU measures n-gram similarity, while CodeBLEU also considers syntax, data flow, and semantic correctness. These metrics provide quantitative support to functional evaluation.
 
-\subsection{Validation Loss and Perplexity}
+\subsection{Validation Loss}
 During training, we monitor the validation loss $\mathcal{L}_{val}$ and perplexity $\text{PPL}$ to assess convergence and generalization. The validation loss is computed as the average cross-entropy loss on the held-out validation set:
 \begin{equation}
 \mathcal{L}_{val} = - \frac{1}{N_{val}} \sum_{i=1}^{N_{val}} \sum_{t=1}^{T_i} \log P_\theta(y_{i,t} \mid y_{i,<t}, x_i)
 \end{equation}
-Perplexity is derived from the validation loss and provides an interpretable measure of model confidence:
-\begin{equation}
-\text{PPL} = \exp(\mathcal{L}_{val})
-\end{equation}A decreasing validation loss and perplexity indicate that the model is learning to generate more accurate code snippets over time, while a divergence between training and validation metrics may signal overfitting.
+A decreasing validation loss indicate that the model is learning to generate more accurate code snippets over time, while a divergence between training and validation metrics may signal overfitting.
 
 \subsection{BLEU Score}
 BLEU evaluates token-level n-gram overlap between generated and reference code \cite{Papineni2002}. 
@@ -1034,7 +1066,7 @@ Where:
 \begin{itemize}
     \item $n$ is the total number of independent samples generated per problem (we use $n=5$).
     \item $c$ is the number of those samples that successfully passed the unit tests.
-    \item $k$ is the specific rank being evaluated ($k \in \{1, 2, 5\}$).
+    \item $k$ is the specific rank being evaluated ($k \in \{1, 2, 3, 4, 5\}$).
 \end{itemize}
 By evaluating at multiple $k$ values, we gain insight into both the model's reliability (pass@1) and its "best-effort" ceiling (pass@5), which represents the likelihood of a human user finding a correct solution within five generated suggestions.
 By combining execution-based testing with similarity metrics, the evaluation ensures that the generated code is syntactically valid, logically correct, and semantically meaningful.
