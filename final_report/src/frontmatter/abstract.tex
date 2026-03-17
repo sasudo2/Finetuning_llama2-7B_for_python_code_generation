@@ -8,10 +8,12 @@
 
 \bigskip
 
-Fine-tuning large language models requires intensive hardware resources, making full fine-tuning infeasible to train under low-resource constraints. Although some large language models perform better in Python code generation, they are not feasible for training on custom datasets. Addressing this gap requires efficient fine-tuning that reduces memory and computation overhead. This project aims to fine-tune Llama-2 7B for Python code generation by Parameter Efficient Fine-Tuning (PEFT) with Quantized Low Rank Adaptation (QLoRA), focusing on hardware-level constraints. The training dataset is constructed from multiple open-source repositories, including FlyTec, StaQC, Alpaca 18k and TACO. Preprocessing involves filtering non-Python samples, cleaning noisy code, and formatting the data into instruction–response pairs suitable for supervised fine-tuning. The fine-tuned model will be evaluated on unseen Python problems. Performance will be compared with the base model Llama-2 7B to assess the improvement achieved through fine-tuning. The fine-tuned model is expected to be capable of generating Python code solutions for common coding exercises, using a mixture of common programming problems and LeetCode problems as a benchmark on low-edge devices.
+**Abstract**
+
+Large Language Models (LLMs) have demonstrated strong capabilities in natural language understanding and code generation; however, their deployment in resource-constrained environments remains challenging due to high computational and memory demands. This study proposes an efficient approach for Python code generation by fine-tuning a LLaMA-2 7B chat model using the Quantized Low-Rank Adaptation (QLoRA) technique. A high-quality training dataset is constructed and refined through a teacher-model-based filtering process to improve data reliability, while structured prompt formatting are incorporated to enhance logical consistency in generated outputs. The fine-tuned model is evaluated on the HumanEval benchmark using pass@k metrics, demonstrating significant improvements over baseline performance in terms of functional correctness. Furthermore, the model is deployed locally using Ollama, enabling efficient and cost-effective inference without dependence on cloud infrastructure. The results highlight the effectiveness of parameter-efficient fine-tuning combined with optimized data curation in developing practical and high-performance code generation systems suitable for real-world applications such as intelligent coding assistants and educational tools.
 
 \vspace{1em}
-\noindent\textit{\textbf{Keywords}}---PEFT, QLoRA, LoRA, OPT, Hugging Face.
+\noindent\textit{\textbf{Keywords}}---LLMs, LLAMA2, Code Generation,PEFT, QLoRA, LoRA, Hugging Face, Ollama, Local Inference, Prompt Engineering.
 
 % \chapter*{ABSTRACT}
 % \onehalfspacing % Ensures consistent spacing as per campus standards
