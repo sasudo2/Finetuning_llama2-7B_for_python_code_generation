@@ -1,34 +1,25 @@
 \chapter{CONCLUSION}
 
-This project successfully developed a locally-deployable, high-performance AI code assistant specialized for competitive programming and algorithmic reasoning. By leveraging the Llama-2-7B architecture and optimizing it through a high-quality, filtered dataset, we bridged the gap between large-scale proprietary models and accessible, private local alternatives.
+This project demonstrated the feasibility of developing a locally deployable AI-based code generation system using parameter-efficient fine-tuning techniques. By leveraging the LLaMA-2 7B model and optimizing it through QLoRA, the system successfully achieved efficient training and inference under limited computational resources.
 
-\section{Achievements}
-The project successfully met all initial objectives, achieving several key milestones in both model performance and system architecture:
+A structured pipeline was implemented, encompassing dataset preparation, instruction formatting, low-rank adaptation, and hyperparameter optimization. The use of QLoRA enabled significant reduction in memory usage while maintaining strong generative performance, making it suitable for consumer-grade hardware environments.
+
+Experimental results indicate that the fine-tuned model achieved notable improvements across multiple evaluation metrics, including BLEU, CodeBLEU, and functional correctness measures such as pass@k. These results highlight improvements in both syntactic quality and semantic correctness of the generated Python code.
+
+Furthermore, the system was successfully deployed using Ollama, enabling efficient local inference and demonstrating the practicality of running large language models without reliance on cloud-based infrastructure. This contributes to improved accessibility, privacy, and cost efficiency.
+
+\section{Key Achievements}
+
+The major contributions of this project are summarized as follows:
 \begin{itemize}
-    \item \textbf{Successful Fine-Tuning:} We implemented a robust QLoRA-based fine-tuning pipeline that adapted the Llama-2-7B model for source code generation within limited VRAM constraints.
-    \item \textbf{Significant Performance Gains:} The model achieved a \textbf{Pass@1 score of 34.6\%} on the HumanEval benchmark, representing a \textbf{2.7x improvement} over the base Llama-2-7B model's performance (12.8\%).
-    \item \textbf{Novel Data Filtration:} We demonstrated the efficacy of using a smaller, specialized "Teacher Model" (\texttt{Qwen2.5-Coder-1.5B}) to purify training data, proving that data quality is more impactful than raw quantity for domain-specific tasks.
-    \item \textbf{Seamless Local Deployment:} The final model was successfully optimized into GGUF format and deployed via \textbf{Ollama}, providing an inference speed of \textbf{24 tokens per second} on consumer-grade hardware.
+    \item Successful implementation of QLoRA-based fine-tuning for efficient adaptation of a large language model.
+    \item Development of a complete training pipeline with structured data preprocessing and hyperparameter optimization.
+    \item Demonstration of improved code generation performance using both automated and functional evaluation metrics.
+    \item Deployment of the fine-tuned model for local inference using Ollama on consumer-grade hardware.
 \end{itemize}
-
-\section{Limitations}
-Despite the successful outcomes, several limitations were identified during the development and testing phases:
-\begin{itemize}
-    \item \textbf{Context Window Constraints:} While Llama-2-7B performs well on individual functions, its 4096-token context window limits its ability to analyze very large code repositories or multi-file projects.
-    \item \textbf{Hardware Bottlenecks:} Due to hardware limitations, we could not explore full parameter fine-tuning or training of the 13B and 70B Llama variants, which likely possess higher reasoning ceilings.
-    \item \textbf{Language Bias:} The current fine-tuning focused heavily on Python. Performance in low-level languages like C++ or Rust, while functional, remains lower than Pythonic performance.
-\end{itemize}
-
-\section{Future Work}
-Building upon the foundation laid by this project, several avenues for future research and development are proposed:
-\begin{itemize}
-    \item \textbf{Context Extension:} Implementing LongLoRA or YaRN techniques to extend the context window to 32k or 128k tokens, allowing for repository-wide code comprehension.
-    \item \textbf{Multi-Language Expansion:} Scaling the dataset to include specialized competitive programming examples in C++, Java, and Go to make the assistant more versatile for diverse software engineering tasks.
-    \item \textbf{RLHF Integration:} Utilizing Reinforcement Learning from Human Feedback (RLHF) with unit-test signals as a reward function to further reduce logical hallucinations in generated code.
-    \item \textbf{Agentic Workflows:} Developing a "Self-Correction" layer where the model can execute its own generated code in a local sandbox and automatically fix bugs before presenting the final solution to the user.
-\end{itemize}
-
-
 
 \section{Final Remarks}
-The results of this project demonstrate that specialized fine-tuning and meticulous data engineering can transform a general-purpose language model into a highly effective coding assistant. By deploying this system via Ollama, we have provided a blueprint for local, private, and efficient AI tools that empower developers to leverage state-of-the-art code intelligence without compromising data security or relying on expensive cloud-based APIs.
+
+This work highlights the growing importance of parameter-efficient techniques in making large language models more accessible and practical. The proposed approach demonstrates that high-quality code generation can be achieved without requiring large-scale computational infrastructure.
+
+With continued advancements in dataset quality, evaluation strategies, and model scaling, such systems have strong potential to support real-world software development, competitive programming, and intelligent coding assistance. The project provides a solid foundation for future research in efficient and deployable AI-driven code generation systems.

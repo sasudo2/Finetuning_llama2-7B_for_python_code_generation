@@ -474,6 +474,14 @@ By gating the linear transformation $\mathbf{a}$ with the non-linear SiLU output
 
 \subsection{Softmax Output Layer}
 The final output layer of the LLaMA-2 model is a linear transformation followed by a softmax function, which converts the model's hidden state into a probability distribution over the vocabulary for token prediction. Given the output from the last transformer decoder layer $\mathbf{h} \in \mathbb{R}^{n \times d}$, where $n$ is the sequence length and $d$ is the hidden dimension, the output logits are computed as:
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/images/figures/softmax_layer.png}
+    \caption{Scaled Dot-Product Attention Mechanism}
+    \label{fig:scaled_attention_dot_product}
+\end{figure}
+
 \begin{equation}
 \mathbf{z} = \mathbf{h} W^{\text{out}} + b^{\text{out}}
 \end{equation}

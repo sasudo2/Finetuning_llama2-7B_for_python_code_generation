@@ -1,84 +1,63 @@
 \chapter{FUTURE ENHANCEMENT}
-\section{Achievements}
-This project addressed the problem of efficient fine-tuning of large language models for code generation under limited computational resources. Instead of training a transformer model from scratch, a parameter-efficient fine-tuning strategy was adopted using QLoRA on the pre-trained \textit{LLaMA-2 7B} model. The objective was to enhance domain-specific code generation capability while maintaining memory and compute efficiency.
-
-The system successfully implemented a structured training pipeline consisting of dataset preparation, instruction formatting, parameter-efficient adaptation, and systematic hyperparameter optimization. By injecting low-rank adaptation matrices into the attention layers, the model was fine-tuned without updating the full parameter set. This significantly reduced GPU memory usage while preserving strong generative performance.
-
-Through adaptive hyperparameter optimization, stable convergence was achieved, and validation loss was effectively minimized. The final model demonstrated improved performance across evaluation metrics such as BLEU, CodeBLEU, and functional correctness measures (e.g., pass@k), indicating enhanced syntactic and semantic quality of generated code.
-
-Overall, the project met its primary objectives:
-\begin{itemize}
-    \item Successful implementation of QLoRA-based fine-tuning.
-    \item Efficient utilization of limited hardware resources.
-    \item Measurable improvement in code generation quality.
-    \item Development of a reproducible and scalable training framework.
-\end{itemize}
 
 \section{Limitations}
 
-Despite achieving the intended objectives, several limitations remain.
+Despite achieving the intended objectives, several limitations were identified in the proposed system.
 
-First, the model size was fixed to the 7B parameter configuration due to hardware constraints. While QLoRA reduces memory requirements, larger models may potentially yield stronger reasoning and generation capabilities.
+First, the model size was restricted to the 7B parameter configuration due to hardware constraints. Although QLoRA significantly reduces memory requirements, larger models could potentially provide improved reasoning capabilities and higher-quality code generation.
 
-Second, dataset size and diversity were limited. Although careful preprocessing and formatting were applied, broader domain coverage and larger instruction datasets could further improve generalization.
+Second, the dataset size and diversity were limited. While preprocessing and instruction formatting improved data quality, the dataset lacks broader domain coverage, which may affect the model’s generalization to unseen or complex programming tasks.
 
-Third, evaluation relied primarily on automated metrics such as BLEU and CodeBLEU. While useful, these metrics may not fully capture functional correctness or logical robustness of generated programs. Execution-based evaluation was performed on limited test cases, which may not represent all real-world scenarios.
+Third, evaluation relied heavily on automated metrics such as BLEU and CodeBLEU. Although useful for measuring syntactic similarity, these metrics do not fully capture functional correctness or logical soundness. Execution-based evaluation was performed, but only on a limited subset of test cases.
 
-Additionally, hyperparameter tuning was conducted under reduced training schedules to conserve computational resources. Although efficient, this approach may not always identify globally optimal configurations.
+Additionally, a mismatch exists between training and evaluation data formats. The HumanEval benchmark provides function signatures in prompts, whereas the training datasets (e.g., Alpaca and Flytech) do not consistently include such structured inputs. This discrepancy likely impacted functional performance scores.
 
-Finally, long-context handling and multi-file code reasoning were not extensively explored, which may limit performance on complex real-world programming tasks.
+Finally, hyperparameter optimization was conducted under constrained computational budgets, limiting the exploration of the full search space. Long-context reasoning and multi-file code generation capabilities were also not extensively explored.
 
 \section{Future Work}
 
-Several directions can be explored to extend and strengthen this work.
+Several directions can be pursued to further enhance the system and extend its capabilities.
 
 \subsection{Scaling Model Capacity}
 
-Future research could investigate fine-tuning larger parameter models or employing mixture-of-experts architectures to enhance reasoning depth and contextual understanding. Exploring scaling-law-informed strategies may provide insights into optimal trade-offs between model size, dataset size, and compute allocation.
+Future work may explore fine-tuning larger models (e.g., 13B or 70B variants) or adopting mixture-of-experts architectures to improve reasoning depth and contextual understanding. Investigating scaling laws could help determine optimal trade-offs between model size, dataset size, and computational resources.
 
 \subsection{Dataset Expansion and Curriculum Learning}
 
-Expanding the dataset to include:
+Expanding the dataset to include diverse programming scenarios can significantly improve robustness. This includes:
 \begin{itemize}
-    \item Multi-language programming tasks,
-    \item Real-world repository-level code,
-    \item Complex algorithmic challenges,
-    \item Debugging and refactoring instructions,
+    \item Multi-language programming tasks (C++, Java, Go),
+    \item Repository-level and real-world code,
+    \item Complex algorithmic and competitive programming problems,
+    \item Debugging and refactoring tasks.
 \end{itemize}
-could substantially improve robustness.
 
-Additionally, curriculum learning strategies—where training progresses from simpler tasks to more complex reasoning problems—may improve convergence stability and final performance.
+Incorporating curriculum learning—progressing from simple to complex tasks—may further improve training stability and model performance.
 
 \subsection{Advanced Evaluation Strategies}
 
-Future work should incorporate:
+Future evaluation frameworks should incorporate:
 \begin{itemize}
-    \item Comprehensive execution-based evaluation,
+    \item Large-scale execution-based testing,
     \item Static code analysis tools,
-    \item Security vulnerability detection metrics,
+    \item Security and vulnerability detection metrics,
     \item Human expert evaluation.
 \end{itemize}
 
-These methods would provide deeper insight into functional correctness, security robustness, and practical usability.
+These approaches would provide a more comprehensive understanding of model reliability and practical usability.
 
 \subsection{Retrieval-Augmented Code Generation}
 
-Integrating retrieval mechanisms could enable the model to reference external documentation, APIs, or repository snippets during generation. Such hybrid approaches may significantly improve accuracy in real-world development environments.
+Integrating retrieval-based mechanisms can enable the model to access external knowledge sources such as documentation, APIs, and code repositories. This hybrid approach can improve factual accuracy and real-world applicability.
 
-\subsection{Deployment and Real-World Integration}
+\subsection{Deployment and System Integration}
 
-Future enhancement may involve:
+Future enhancements may focus on real-world deployment, including:
 \begin{itemize}
-    \item Deployment as an IDE assistant,
-    \item Real-time inference optimization,
-    \item Quantization-aware serving,
-    \item Integration into CI/CD pipelines for automated code validation.
+    \item Integration as an IDE-based coding assistant,
+    \item Optimization for real-time inference,
+    \item Quantization-aware serving techniques,
+    \item Integration into CI/CD pipelines for automated validation.
 \end{itemize}
 
-Optimizing inference latency and memory footprint would make the system more suitable for production-level applications.
-
-\section{Final Remarks}
-
-This project demonstrates that parameter-efficient fine-tuning techniques can effectively adapt large language models for specialized code generation tasks without requiring massive computational infrastructure. By combining structured data preparation, adaptive hyperparameter optimization, and low-rank adaptation methods, a scalable and resource-efficient framework was established.
-
-The findings reinforce the growing importance of efficient model adaptation strategies in modern AI systems. With further dataset expansion, advanced evaluation methods, and scalable deployment strategies, the proposed framework holds strong potential for real-world software engineering applications and future research in intelligent code generation systems.
+Such improvements would make the system more practical for production-level applications.

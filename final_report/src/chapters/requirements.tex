@@ -25,15 +25,18 @@ The implementation relies on a specialized ecosystem of Python libraries designe
 
 \subsection{Frameworks and Libraries:}
 \begin{itemize}
-    \item \textbf{Numpy \& Pandas:} For efficient data manipulation and preprocessing.
-    \item \textbf{BitsAndBytes:} Provides the backend for \textbf{4-bit Quantization (NF4)}, including "Double Quantization" and "Paged Optimizers," which allow the model to run within 24GB VRAM by offloading optimizer states to CPU RAM during memory spikes.
-    \item \textbf{Transformers \& TRL:} Hugging Face libraries for model loading (\texttt{AutoModelForCausalLM}), tokenization, and training orchestration. The \texttt{Trainer} API handles gradient accumulation and training loops.
-    \item \textbf{Optuna:} A hyperparameter optimization framework using the \textbf{Tree-structured Parzen Estimator (TPE)} to search for optimal learning rate, LoRA alpha, and dropout values.
-    \item \textbf{peft:} Implements Parameter-Efficient Fine-Tuning (PEFT) techniques, such as LoRA adapters, reducing trainable parameters and enabling fine-tuning on limited hardware.
-    \item \textbf{datasets:} Hugging Face library for easy access to standard datasets and seamless integration with PyTorch/TensorFlow pipelines.
-    \item \textbf{PyTorch:} Deep learning framework used for model training, GPU acceleration, and autograd functionality.
-    \item \textbf{WandB:}
-    \item \textbf{Huggingface:}
+    \item \textbf{Numpy \& Pandas:} For efficient data manipulation and preprocessing, used to handle prompts, predictions, and evaluation metrics.
+    \item \textbf{BitsAndBytes:} Provides 4-bit Quantization (NF4) and Double Quantization, enabling the model to fit in limited GPU memory. Used for memory-efficient loading of LLaMA-2-7B with LoRA adapters.
+    \item \textbf{Transformers \& TRL:} Hugging Face libraries for loading, tokenizing, and generating code using pre-trained language models. The \texttt{Trainer} API is used to manage fine-tuning loops.
+    \item \textbf{Optuna:} Hyperparameter optimization framework using TPE (Tree-structured Parzen Estimator) to automatically search for optimal learning rate, LoRA alpha, dropout, and other tuning parameters.
+    \item \textbf{peft:} Implements Parameter-Efficient Fine-Tuning techniques like LoRA adapters, reducing trainable parameters while allowing effective adaptation of large language models.
+    \item \textbf{datasets:} Provides easy access to standard datasets such as \texttt{human\_eval}, enabling straightforward integration with PyTorch for evaluation of model performance.
+    \item \textbf{PyTorch:} Deep learning framework used for model training, GPU acceleration, automatic differentiation, and managing tensor operations during fine-tuning and evaluation.
+    \item \textbf{human\_eval:} Benchmark dataset for evaluating code generation models on functional correctness. Used to compute pass@k metrics in this project.
+    \item \textbf{tqdm:} Provides progress bars for loops, used to visually track dataset iteration and code generation evaluation progress.
+    \item \textbf{matplotlib:} Python plotting library used to visualize training metrics, validation loss, and evaluation results for the fine-tuned model.
+    \item \textbf{codebleu:} Metric to evaluate code generation quality considering syntax, data-flow, and n-gram similarity. Used to assess functional and structural correctness of generated code.
+    \item \textbf{sacrebleu:} Standardized BLEU score computation used to evaluate code similarity and translation quality for generated solutions.
 \end{itemize}
 
 \subsection{Development Environment:}
