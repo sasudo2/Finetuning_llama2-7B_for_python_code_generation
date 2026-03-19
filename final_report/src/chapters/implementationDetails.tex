@@ -6,6 +6,8 @@
     \label{fig:Implementation of the project}
 \end{figure}
 
+
+
 \section{Data Collection and Preparation}
 Fine-tuning Llama-2 7B for Python code generation requires a high-quality, domain-specific dataset containing diverse programming tasks and their corresponding solutions. We constructed a composite dataset from multiple reputable open-source sources.
 
@@ -280,7 +282,7 @@ The HPO process concluded after 45 trials. The objective function was the minimi
 \textbf{Analysis:} The best trial achieved a validation loss of \textbf{0.5847}. Analysis of the trials showed that the model was highly sensitive to the \texttt{lora\_alpha} to \texttt{lora\_r} ratio. A higher ratio (32:8) acted as a powerful multiplier for the learned weights, which was particularly effective for the specialized domain of code generation.
 
 
-\section{Final Fine-Tuning Implementation}
+\section{Fine-Tuning Implementation}
 
 Following the identification of the optimal hyperparameter set through Bayesian optimization, the final fine-tuning phase was executed. This process utilized the \textbf{QLoRA (Quantized Low-Rank Adaptation)} methodology to adapt the \texttt{Llama-2-7b-chat-hf} model to the specialized domain of competitive programming and software engineering logic.
 
@@ -352,7 +354,21 @@ Model Repository & Hugging Face Hub (Private) \\
 \end{table}
 
 
+\subsection{Resources for Fine-Tuning}
+The fine-tuning of the LLaMA-2-7B model was conducted on a Kaggle environment equipped with dual NVIDIA T4 GPUs. This setup provided sufficient memory and compute capability to handle large language models with parameter-efficient fine-tuning methods such as LoRA. The total training time for the fine-tuning process was approximately 3 hours and 2 minutes.
 
+During fine-tuning, the model was trained for multiple epochs, but the process was intentionally stopped at epoch 2. This decision was based on monitoring the validation loss, which showed a consistent decreasing trend in the early epochs. By epoch 2, the rate of improvement in validation loss had plateaued, indicating that further training would yield diminishing returns and potentially risk overfitting. Early stopping at this stage helped to conserve computational resources while maintaining model performance.
+
+To optimize memory usage and computational efficiency, the model leveraged 4-bit quantization using the BitsAndBytes library. Additionally, Parameter-Efficient Fine-Tuning (PEFT) techniques such as LoRA adapters were used, significantly reducing the number of trainable parameters and enabling fine-tuning on GPUs with limited VRAM. The combination of these strategies allowed the large model to be trained effectively within the Kaggle GPU constraints.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{src/images/figures/gpu_usage_finetuning.png}
+    \caption{GPU usage during the fine-tuning process, showing utilization trends across the dual T4 GPUs. The figure illustrates that the memory and compute were efficiently utilized while training the model.}
+    \label{fig:gpu_usage_finetuning}
+\end{figure}
+
+Overall, this setup demonstrates that large-scale models such as LLaMA-2 can be fine-tuned efficiently using accessible cloud resources, parameter-efficient techniques, and careful monitoring of training metrics.
 
 
 \section{Evaluation}
@@ -380,7 +396,7 @@ where $n$ is the total number of samples generated per problem (set to $n=5$ in 
 
 
 \subsection{Qualitative Assessment and Code Extraction}
-Beyond numerical scores, we implemented a specialized inference and extraction pipeline (\texttt{evaluation.py}) to evaluate the practical usability of the model outputs.
+We implemented a specialized inference and extraction pipeline (\texttt{evaluation.py}) to evaluate the practical usability of the model outputs.
 Because LLMs often wrap code in conversational "chatter," we developed a \texttt{re}-based extraction utility. This software identifies code blocks between triple backticks (\texttt{```python ... ```}) and falls back to keyword-based detection (\texttt{def}, \texttt{class}, \texttt{import}) to ensure a clean executable string is retrieved for the \texttt{check\_correctness} function.
 
 \subsection{Sampling Strategies for HumanEval}
@@ -389,13 +405,16 @@ The performance on the HumanEval benchmark is heavily dependent on the decoding 
 \item \textbf{Temperature Scaling ($T=0.8$):} This softens the probability distribution, allowing the model to generate diverse algorithmic solutions across its five attempts per problem.
 \item \textbf{Top-p (Nucleus) Sampling ($p=0.95$):} This restricts the model's vocabulary to the smallest set of tokens whose cumulative probability exceeds 0.95. This prevents "long-tail" hallucinations (random characters) while maintaining enough creativity to solve complex logical puzzles.
 \end{itemize}
+
 \subsection{Evaluation between quantized and unquantized base models}
 To ensure that the quantization process did not degrade the model's performance,we implemented a quantitative comparison between the \textbf{Base Llama-2-7b-chat} (unquantized) and the \textbf{Base Llama-2-7b-chat} (quantized). Both models were evaluated on the same subset of 1392 test cases problems, with identical sampling parameters (temperature=0.7, top\_p=0.9) to ensure a fair comparison.
 The unquantized base model has the 16-bit weights, while the quantized base model has the 4-bit NF4 weights. The evaluation process involved generating code for each test case and calculating the Bleu and CodeBLEU scores against the reference code. This comparison allowed us to confirm that the quantization process did not significantly impact the model's ability to generate syntactically correct and logically sound Python code.
 In CodeBleu,we evaluated the generated code on four dimensions: \textbf{N-gram Matching}, \textbf{Weighted N-gram Matching}, \textbf{Syntax Matching}, and \textbf{Data Flow Matching}. The results showed that the quantized base model performed comparably to the unquantized version, with only a marginal decrease in scores, confirming the effectiveness of the NF4 quantization strategy for code generation tasks.
+
 \subsection{Quantitative Metrics of base and fine-tuned model}
 In this metric we evaluate the base model and fine tuned model on the same set of 1392 test cases. The evaluation process involves generating the code for each test case and then find the Bleu and CodeBLEU scores for the generated code against the reference code.
 The results showed a significant improvement in both Bleu and CodeBLEU scores for the fine-tuned model compared to the base model. In CodeBleu,we evaluated the generated code on four dimensions: \textbf{N-gram Matching}, \textbf{Weighted N-gram Matching}, \textbf{Syntax Matching}, and \textbf{Data Flow Matching}. The fine-tuned model demonstrated a substantial increase in all four dimensions, indicating that the instruction-masked fine-tuning process effectively enhanced the model's ability to generate syntactically correct and logically coherent Python code.
+
 \subsection{Functinal Evaluation of base and fine-tuned model}
 To assess the effectiveness of the fine-tuning process, we conducted a functional evaluation using the HumanEval benchmark, which consists of programming problems designed to test code generation capabilities. 
 Both models were provided with identical prompts, and the generated solutions were assessed on the following criteria:
@@ -424,6 +443,24 @@ We computed quantitative metrics such as pass@k scores were calculated.
 
 
 \section{Ollama Implementation for Local Inference}
+After selecting the fine-tuned model, the request is forwarded to the local inference engine powered by Ollama. The implementation leverages Ollama as a lightweight and efficient runtime environment for executing large language models on consumer-grade hardware. The fine-tuned model is first converted into the GGUF format, which is optimized for fast inference and reduced memory consumption.
+
+During execution, the formatted prompt is passed to the Ollama client through a REST-based API interface. The Ollama engine loads the selected model into memory and performs inference using optimized CPU/GPU kernels. This enables real-time generation of Python code without requiring cloud-based computation.
+
+The \textit{Generate Code Solution} use case represents the core functionality of the system. Upon receiving the prompt, the model processes the input using its learned parameters and generates a syntactically correct and contextually relevant Python solution. The generated output is then passed to the response processing module, where unnecessary tokens, formatting inconsistencies, and incomplete code segments are cleaned.
+
+Additionally, the system supports the \textit{Explain Algorithmic Logic} use case, where the generated code is accompanied by a natural language explanation. This is achieved by prompting the model with instruction-based templates that encourage step-by-step reasoning, improving interpretability for the user.
+
+From an implementation perspective, local inference offers several advantages. It ensures data privacy since user prompts are not transmitted to external servers, reduces latency by eliminating network overhead, and provides full control over model behavior and configuration parameters such as temperature and token limits.
+
+Overall, the integration of Ollama enables an efficient, scalable, and privacy-preserving deployment of the fine-tuned model, making the system suitable for real-world applications on standard consumer hardware.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/images/figures/ollama.png}
+    \caption{Scaled Dot-Product Attention Mechanism}
+    \label{fig:scaled_attention_dot_product}
+\end{figure}
+
 \subsection{UseCase diagram}
 \begin{figure}[ht]
     \centering
@@ -431,6 +468,19 @@ We computed quantitative metrics such as pass@k scores were calculated.
     \caption{UseCase diagram}
     \label{fig:UseCase diagram}
 \end{figure}
+The use case diagram illustrated in Figure~\ref{fig:UseCase Diagram} represents the interaction between the user and the system components involved in the Python code generation process. It highlights the primary functionalities provided by the system and how external actors interact with them.
+
+The diagram consists of two main actors: the \textbf{User} and the \textbf{Ollama Engine}. The User is the primary actor who interacts with the system through various use cases, while the Ollama Engine represents the backend model responsible for generating and processing responses.
+
+The first use case, \textit{Input Coding Problem}, allows the user to provide a Python programming problem to the system. After providing the input, the user can proceed to the \textit{Select Fine-tuned Model} use case, where a specific trained model is selected for generating the solution.
+
+The \textit{Generate Code Solution} use case is the core functionality of the system. It takes the user input and the selected model as inputs and produces the corresponding Python code. This use case is marked with an \texttt{<<includes>>} relationship from the model selection step, indicating that model selection is a necessary part of the code generation process.
+
+Additionally, the system provides an \textit{Explain Algorithmic Logic} use case, which enables the user to understand the reasoning and logic behind the generated code. This enhances the interpretability and educational value of the system.
+
+The Ollama Engine interacts with both the \textit{Generate Code Solution} and \textit{Explain Algorithmic Logic} use cases, as it is responsible for executing the model inference and producing outputs.
+
+Overall, the use case diagram demonstrates a user-centric design where the system not only generates code solutions but also provides explanations, making it useful for both practical problem-solving and learning purposes.
 
 \subsection{Class diagram}
 \begin{figure}[ht]
@@ -439,6 +489,19 @@ We computed quantitative metrics such as pass@k scores were calculated.
     \caption{Class Diagram}
     \label{fig:Class Diagram}
 \end{figure}
+The class diagram shown in Figure~\ref{fig:Class Diagram} represents the static structure of the system by illustrating the key classes, their attributes, methods, and relationships involved in the Python code generation pipeline.
+
+The \textbf{User Interface} class serves as the entry point for user interaction. It contains attributes such as \textit{user\_input} and \textit{generate\_code}, and provides methods like \textit{getPrompt()} and \textit{displayResult()} to capture user input and present the generated output.
+
+The \textbf{Prompt Formatter} class is responsible for preparing the input prompt before it is sent to the model. It includes attributes such as \textit{template} and \textit{example}, and methods like \textit{formatPrompt()} and \textit{add\_example()} to structure and enhance the prompt. The User Interface interacts with the Prompt Formatter in a one-to-many (0..n to 1) relationship, indicating that multiple user inputs can be processed by a single formatter instance.
+
+The \textbf{Fine-tuned Model Manager} class manages the loading and handling of the trained models. It maintains attributes such as \textit{base\_model} and \textit{adapter\_model}, and provides the \textit{loadModel()} method to initialize the required model components.
+
+The \textbf{Ollama Client} class acts as a bridge between the application and the model. It contains attributes like \textit{base\_model}, \textit{temperature}, and \textit{api\_url}, and provides methods such as \textit{sendPrompt()} and \textit{getResponse()} for communicating with the model. Both the Prompt Formatter and the Fine-tuned Model Manager are associated with the Ollama Client, each having a one-to-one relationship, indicating direct dependency for prompt processing and model usage.
+
+Finally, the \textbf{Model Response Parser} class is responsible for processing the raw output generated by the model. It includes attributes such as \textit{raw\_output} and \textit{extracted\_code}, and methods like \textit{cleanOutput()} and \textit{extractFunction()} to refine and extract meaningful code from the response. The Ollama Client interacts with this class in a one-to-one relationship to ensure that the output is properly formatted before being returned to the user.
+
+Overall, the class diagram demonstrates a modular and well-organized design where each class has a specific responsibility, enabling maintainability, scalability, and clear separation of concerns within the system.
 
 \subsection{Sequence diagram}
 \begin{figure}[ht]
@@ -447,6 +510,18 @@ We computed quantitative metrics such as pass@k scores were calculated.
     \caption{Sequence Diagram}
     \label{fig:Sequence Diagram}
 \end{figure}
+The sequence diagram shown in Figure~\ref{fig:Sequence Diagram} illustrates the step-by-step interaction between different components of the system during the process of generating code from a user-provided prompt.
+
+The process begins when the \textbf{User} enters a Python programming problem through the \textit{Frontend UI}. The frontend captures this input and sends it to the \textit{Backend API} as a request. The Backend API acts as an intermediary, forwarding the received prompt to the \textit{Prompt Processor}.
+
+The Prompt Processor is responsible for formatting and preparing the input prompt to ensure it is compatible with the model's expected input format. After preprocessing, the formatted prompt is sent to the \textit{Ollama Client}, which serves as a bridge between the backend system and the locally deployed fine-tuned model.
+
+The Ollama Client forwards the request to the \textit{Fine-Tuned Model (Ollama)}, where the actual inference takes place. The model processes the input prompt and generates the corresponding code output. This output is then returned back through the same chain of components.
+
+First, the generated response is sent from the model to the Ollama Client, which then forwards it to the Backend API. The Backend API processes the response if necessary and sends it back to the Frontend UI. Finally, the Frontend UI displays the generated code to the User.
+
+This sequential flow ensures a clear and organized communication pipeline, enabling efficient request handling, proper data transformation, and seamless interaction between the user interface and the underlying model.
+
 
 \subsection{Component diagram}
 \begin{figure}[ht]
@@ -455,6 +530,18 @@ We computed quantitative metrics such as pass@k scores were calculated.
     \caption{Component Diagram}
     \label{fig:Component Diagram}
 \end{figure}
+The component diagram shown in Figure~\ref{fig:Component Diagram} illustrates the overall architecture of the system, highlighting the interaction between the frontend and backend components involved in generating responses from the fine-tuned model.
+
+The system is divided into two major layers: the \textbf{Frontend} and the \textbf{Backend}. The frontend consists of the \textit{User Interface}, \textit{Prompt Input Handler}, and \textit{Result Viewer}. The User Interface serves as the interaction point where users input their prompts. These prompts are captured and processed by the Prompt Input Handler, which ensures that the input is properly formatted before being sent to the backend through the API.
+
+On the backend side, the \textit{API Server} acts as the central communication hub, receiving requests from the frontend and forwarding them to the appropriate modules. The \textit{Prompt Processing Module} performs preprocessing tasks such as cleaning, formatting, and preparing the input prompt for inference.
+
+The processed prompt is then passed to the \textit{Ollama Client}, which is responsible for communicating with the locally hosted fine-tuned model running via Ollama. The \textit{Fine-Tuned Model (Ollama)} generates the response based on the input prompt.
+
+Once the response is generated, it is sent to the \textit{Response Processing Module}, which refines and formats the output to ensure it is suitable for display. Finally, the processed response is delivered to the \textit{Result Viewer} in the frontend, where it is presented to the user.
+
+This modular architecture ensures clear separation of concerns, scalability, and efficient communication between different components, making the system robust and maintainable.
+
 
 \subsection{Activity diagram}
 \begin{figure}[ht]
@@ -463,7 +550,15 @@ We computed quantitative metrics such as pass@k scores were calculated.
     \caption{Activity Diagram}
     \label{fig:Activity Diagram}
 \end{figure}
+The activity diagram presented in Figure~\ref{fig:Activity Diagram} illustrates the workflow of the system from user input to the final output generation. It provides a high-level view of the sequence of activities involved in processing a programming query and generating the corresponding response.
 
+The process begins when the \textbf{User} enters a Python programming problem through the frontend interface. The frontend then sends this prompt to the backend system for further processing. Upon receiving the request, the system performs prompt formatting to ensure that the input is structured correctly for the model.
+
+Once the prompt is prepared, it is forwarded to the Ollama-based fine-tuned model for inference. The model processes the input and generates the corresponding Python code as output. After generation, the response undergoes a processing stage where it is refined and validated.
+
+A decision point is then reached to check whether the generated code is valid. If the output is valid, the system proceeds to return the generated code to the frontend, where it is displayed to the user. However, if the output is not valid, an error message is generated and shown to the user instead.
+
+This activity flow ensures that the system handles both successful and unsuccessful outcomes effectively, providing either a usable solution or appropriate feedback, thereby improving user experience and system reliability.
 
 
 
