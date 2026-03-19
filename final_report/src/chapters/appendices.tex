@@ -21,16 +21,6 @@ Where $V$ is the vocabulary size, $y_i$ is the ground truth (one-hot encoded), a
 \]
 
 
-
-\section{Grouped-Query Attention (GQA) Ratio}
-For Qwen2.5-Coder-1.5B, the memory efficiency is derived from the GQA ratio. Let $H_q$ be the number of query heads and $H_{kv}$ be the number of key-value heads. The memory savings factor $M$ compared to Multi-Head Attention (MHA) is:
-\[
-M = \frac{H_q}{H_{kv}}
-\]
-In our specific configuration for the 1.5B model, $H_q = 12$ and $H_{kv} = 2$, resulting in a $6\times$ reduction in KV cache memory footprint per sequence.
-
-
-
 \chapter{PROJECT BUDGET}
 The project budget is primarily allocated toward high-performance compute resources required for fine-tuning the 7-billion parameter model and the development of the local inference application.
 
@@ -63,13 +53,13 @@ The development followed a 6-month trajectory, from data acquisition to local de
 
 \section{Gantt Chart}
 The following phases were executed:
-\begin{enumerate}
-    \item \textbf{Phase 1: Research \& Data Synthesis (Month 1-2):} Merging Alpaca and FlyTech datasets.
-    \item \textbf{Phase 2: Data Cleaning (Month 3):} Using Qwen2.5-Coder-1.5B to filter 60k rows.
-    \item \textbf{Phase 3: Fine-tuning (Month 4):} Implementing QLoRA on Llama-2-7B.
-    \item \textbf{Phase 4: Evaluation (Month 5):} HumanEval testing and Pass@k analysis.
-    \item \textbf{Phase 5: Deployment \& Report (Month 6):} Ollama integration and final documentation.
-\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \caption{Project Schedule (Gantt Chart)}
+    \vspace{5pt} % Minimal spacing after caption
+    \includegraphics[width=1\textwidth]{src/images/figures/Planning.png}
+    \label{fig:project_schedule}
+\end{figure}
 
 
 

@@ -1,5 +1,10 @@
-\chapter{Implementation Details}
-This project aims to fine-tune the Llama-2 7B large language model for Python code generation. The methodology is structured in three phases: dataset preparation, fine-tuning, and evaluation. 
+\chapter{IMPLEMENTATION DETAILS}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/images/figures/methodology.png}
+    \caption{Methodology}
+    \label{fig:Implementation of the project}
+\end{figure}
 
 \section{Data Collection and Preparation}
 Fine-tuning Llama-2 7B for Python code generation requires a high-quality, domain-specific dataset containing diverse programming tasks and their corresponding solutions. We constructed a composite dataset from multiple reputable open-source sources.
@@ -12,6 +17,20 @@ Fine-tuning Llama-2 7B for Python code generation requires a high-quality, domai
 \end{figure}
 
 \subsection{Dataset Sources}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/images/figures/Flytech.png}
+    \caption{Flytech datasets}
+    \label{fig:Flytech datasets}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/images/figures/alpaca.png}
+    \caption{Alpaca datasets}
+    \label{fig:Alpaca datasets}
+\end{figure}
+
 \begin{table}[h!]
 \centering
 \begin{tabular}{|p{5cm}|p{2cm}|p{6cm}|p{2cm}|}
@@ -26,7 +45,7 @@ Python Code Instructions 18k (Alpaca-style) & $\sim$18,000 pairs & Instruction p
 \caption{Datasets used for fine-tuning Llama-2 7B for Python code generation.}
 \end{table}
 
-\section{Dataset Preparation and Refinement}
+\subsection{Dataset Preparation and Refinement}
 
 The foundational quality of a fine-tuned model is directly dependent on the cleanliness and relevance of the training data. For this project, we developed a specialized pipeline to transform general-purpose instruction datasets into a high-fidelity algorithmic training set by integrating automated LLM classification with manual verification.
 
@@ -127,9 +146,9 @@ To ensure the model prioritizes functional logic over natural language explanati
 \toprule
 \textbf{Stage} & \textbf{Sample Count} & \textbf{Avg. Tokens/Sample} & \textbf{Est. Logic Density} \\ 
 \midrule
-Raw Combined               & 60,000 & 412 & Low \\
-Filtered (Logic Only)      & 34,000 & 285 & Medium \\
-Refined (Functional/Clean) & 21,542 & 198 & High \\
+Raw Combined               & 60,000 & Low \\
+Filtered (Logic Only)      & 34,000 & Medium \\
+Refined (Functional/Clean) & 21,542 & High \\
 \textbf{Final (Functional-Only)} & \textbf{13,914} & \textbf{164} & \textbf{Very High} \\ 
 \bottomrule
 \end{tabular}
@@ -182,6 +201,14 @@ The structure utilized follows the schema:
 \end{verbatim}
 
 We utilized the \texttt{LlamaTokenizer} with a fixed \texttt{max\_length} of 512 tokens. To handle variable-length inputs within a batch, we implemented right-side padding (\texttt{padding\_side="right"}). Crucially, the padding token was mapped to the \texttt{eos\_token} to ensure the model learns a clear termination signal for code blocks, preventing the common "infinite loop" generation failure mode.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/images/figures/final_datasets.png}
+    \caption{Methodology}
+    \label{fig:Implementation of the project}
+\end{figure}
+
 \section{Hyperparameter Optimization}
 
 The fine-tuning of Large Language Models (LLMs) is highly sensitive to the configuration of adapters and optimization schedules. To move beyond sub-optimal manual tuning, we implemented an automated Hyperparameter Optimization (HPO) pipeline using \textbf{Optuna} integrated with the \textbf{Hugging Face Trainer}.
@@ -220,7 +247,7 @@ The search space for our Optuna trials was not arbitrary; it was constrained by 
 
 
 
-\subsection{SFT Loss Masking (Data Engineering)}
+\subsection{SFT Loss Masking}
 A critical component of our implementation was the custom tokenization logic. To ensure the model learned the logic of the code rather than the structure of the prompt, we applied \textbf{Instruction Masking}. During the calculation of the Cross-Entropy loss, all tokens corresponding to the user's "prompt" were assigned a label of $-100$. Consequently, the gradient updates were strictly driven by the "code" completion, focusing the model's capacity on generating syntactically correct and logically sound programming solutions.
 
 \subsection{Formalism of Instruction Masking}In standard Supervised Fine-Tuning (SFT), the goal is to minimize the negative log-likelihood of the target sequence. However, in our implementation, we modified the objective function to focus strictly on code synthesis. Given a sequence of tokens $Y = \{y_1, y_2, \dots, y_n\}$, where $Y_{prompt} \subset Y$ and $Y_{code} \subset Y$, the loss $\mathcal{L}$ is calculated as:\begin{equation}\mathcal{L} = -\sum_{i \in Y_{code}} \log P(y_i | y_{<i})\end{equation}By assigning $y_i = -100$ for all $i \in Y_{prompt}$, the indices are ignored by the PyTorch \texttt{CrossEntropyLoss} function. This "Completion-only" training ensures that the model does not waste representational capacity on the user's input, which is already provided during inference. This is particularly important for Python generation, as the model must learn that the transition from the \texttt{[/INST]} tag to the \texttt{def} keyword is the most critical logical boundary.
@@ -288,7 +315,8 @@ The final training utilized a \textbf{Cosine Learning Rate Scheduler}, which pro
 \end{itemize}
 
 \subsection{Configuration Summary}
-The final model configuration, which was synchronized to the Hugging Face Hub and monitored via Weights \& Biases, is summarized in Table \ref{tab:final_config}.
+
+The final model configuration used for fine-tuning the LLaMA-2-7B-Chat model is summarized in Table~\ref{tab:final_config}. The configuration includes the base model, quantization settings, LoRA hyperparameters, optimizer, scheduler, and other important training parameters. The training process was monitored using Weights \& Biases and the final model was synchronized to the Hugging Face Hub.
 
 \begin{table}[h]
 \centering
@@ -296,19 +324,36 @@ The final model configuration, which was synchronized to the Hugging Face Hub an
 \hline
 \textbf{Feature} & \textbf{Implementation Detail} \\
 \hline
-Model Base & Llama-2-7b-chat-hf \\
+Base Model & Llama-2-7b-chat-hf \\
+Fine-Tuning Method & QLoRA \\
 Quantization & 4-bit NF4 with Double Quantization \\
+Maximum Sequence Length & 512 \\
+Batch Size (per device) & 4 \\
+Gradient Accumulation Steps & 4 \\
+Learning Rate & $2.9 \times 10^{-5}$ \\
+Warmup Ratio & 0.0693 \\
+Learning Rate Scheduler & Cosine Decay \\
+Optimizer & Paged AdamW 32-bit \\
+Gradient Checkpointing & Enabled \\
+Precision & FP16 Mixed Precision \\
+Random Seed & 42 \\
 LoRA Rank ($r$) & 8 \\
 LoRA Alpha ($\alpha$) & 32 \\
 LoRA Dropout & 0.0961 \\
-Optimizer & Paged AdamW 32-bit \\
-Scheduler & Cosine Decay \\
+LoRA Target Modules & q\_proj, k\_proj, v\_proj, o\_proj, gate\_proj, up\_proj, down\_proj \\
 Loss Strategy & Instruction Masking (Labels = -100) \\
+Evaluation Strategy & Step-based evaluation every 50 steps \\
+Model Logging & Weights \& Biases \\
+Model Repository & Hugging Face Hub (Private) \\
 \hline
 \end{tabular}
-\caption{Final Fine-Tuning Hyperparameters and Configuration}
+\caption{Final Fine-Tuning Hyperparameters and Training Configuration}
 \label{tab:final_config}
 \end{table}
+
+
+
+
 
 \section{Evaluation}
 The evaluation of the fine-tuned \texttt{Llama-2-7b} model was conducted through a multi-layered software ecosystem designed to ensure reproducibility, rigorous performance tracking, and granular analysis of the model's code generation capabilities.
@@ -324,30 +369,19 @@ The evaluation framework leveraged several state-of-the-art software tools that 
     \item \textbf{PEFT and BitsAndBytes:} The \texttt{peft} library was instrumental in evaluating inference efficiency. By loading only the 160MB adapter file onto the frozen 4-bit base model, we verified that the software could perform low-latency evaluation on single-GPU environments while maintaining the logical integrity of the \texttt{NF4} weights.
 \end{itemize}
 
+
 \subsection{Standardized Benchmarking: OpenAI HumanEval}
 To objectively measure the coding proficiency of the fine-tuned model, we utilized the \textbf{OpenAI HumanEval} dataset. This dataset consists of 164 hand-written programming problems designed to test logic, algorithms, and language comprehension.
-
 \subsubsection{The Pass@k Metric}
 Code generation is inherently stochastic; therefore, simple accuracy is insufficient. We implemented the \textbf{Pass@k} metric, which measures the probability that at least one of the $k$ generated code samples passes the unit tests for a given problem. 
-
-
-
 The software computes this using the unbiased estimator:
 $$ \text{pass@k} = \mathbb{E} \left[ 1 - \frac{\binom{n-c}{k}}{\binom{n}{k}} \right] $$
 where $n$ is the total number of samples generated per problem (set to $n=5$ in our implementation), and $c$ is the number of samples that successfully passed the unit tests.
 
-\subsubsection{Comparative Results}
-We executed identical evaluation scripts for both the \textbf{Base Llama-2-7b-chat} and our \textbf{Fine-tuned LoRA Adapter}. The results demonstrate a significant uplift in technical proficiency after the instruction-masked fine-tuning process.
-
 
 \subsection{Qualitative Assessment and Code Extraction}
 Beyond numerical scores, we implemented a specialized inference and extraction pipeline (\texttt{evaluation.py}) to evaluate the practical usability of the model outputs.
-
-\begin{itemize}
-    \item \textbf{Regex-Based Extraction:} Because LLMs often wrap code in conversational "chatter," we developed a \texttt{re}-based extraction utility. This software identifies code blocks between triple backticks (\texttt{```python ... ```}) and falls back to keyword-based detection (\texttt{def}, \texttt{class}, \texttt{import}) to ensure a clean executable string is retrieved for the \texttt{check\_correctness} function.
-    
-    \item \textbf{Diversity via Stochastic Sampling:} During the generation of the 5 samples for HumanEval, we utilized a \texttt{temperature} of $0.8$ and \textit{Nucleus Sampling} (\texttt{top\_p=0.95}). This software configuration encouraged the model to explore different algorithmic paths, which is critical for achieving higher Pass@k scores compared to greedy decoding.
-\end{itemize}
+Because LLMs often wrap code in conversational "chatter," we developed a \texttt{re}-based extraction utility. This software identifies code blocks between triple backticks (\texttt{```python ... ```}) and falls back to keyword-based detection (\texttt{def}, \texttt{class}, \texttt{import}) to ensure a clean executable string is retrieved for the \texttt{check\_correctness} function.
 
 \subsection{Sampling Strategies for HumanEval}
 The performance on the HumanEval benchmark is heavily dependent on the decoding strategy. We implemented a \textbf{Stochastic Decoding} pipeline to maximize the \textit{Pass@k} scores.
@@ -355,28 +389,82 @@ The performance on the HumanEval benchmark is heavily dependent on the decoding 
 \item \textbf{Temperature Scaling ($T=0.8$):} This softens the probability distribution, allowing the model to generate diverse algorithmic solutions across its five attempts per problem.
 \item \textbf{Top-p (Nucleus) Sampling ($p=0.95$):} This restricts the model's vocabulary to the smallest set of tokens whose cumulative probability exceeds 0.95. This prevents "long-tail" hallucinations (random characters) while maintaining enough creativity to solve complex logical puzzles.
 \end{itemize}
+\subsection{Evaluation between quantized and unquantized base models}
+To ensure that the quantization process did not degrade the model's performance,we implemented a quantitative comparison between the \textbf{Base Llama-2-7b-chat} (unquantized) and the \textbf{Base Llama-2-7b-chat} (quantized). Both models were evaluated on the same subset of 1392 test cases problems, with identical sampling parameters (temperature=0.7, top\_p=0.9) to ensure a fair comparison.
+The unquantized base model has the 16-bit weights, while the quantized base model has the 4-bit NF4 weights. The evaluation process involved generating code for each test case and calculating the Bleu and CodeBLEU scores against the reference code. This comparison allowed us to confirm that the quantization process did not significantly impact the model's ability to generate syntactically correct and logically sound Python code.
+In CodeBleu,we evaluated the generated code on four dimensions: \textbf{N-gram Matching}, \textbf{Weighted N-gram Matching}, \textbf{Syntax Matching}, and \textbf{Data Flow Matching}. The results showed that the quantized base model performed comparably to the unquantized version, with only a marginal decrease in scores, confirming the effectiveness of the NF4 quantization strategy for code generation tasks.
+\subsection{Quantitative Metrics of base and fine-tuned model}
+In this metric we evaluate the base model and fine tuned model on the same set of 1392 test cases. The evaluation process involves generating the code for each test case and then find the Bleu and CodeBLEU scores for the generated code against the reference code.
+The results showed a significant improvement in both Bleu and CodeBLEU scores for the fine-tuned model compared to the base model. In CodeBleu,we evaluated the generated code on four dimensions: \textbf{N-gram Matching}, \textbf{Weighted N-gram Matching}, \textbf{Syntax Matching}, and \textbf{Data Flow Matching}. The fine-tuned model demonstrated a substantial increase in all four dimensions, indicating that the instruction-masked fine-tuning process effectively enhanced the model's ability to generate syntactically correct and logically coherent Python code.
+\subsection{Functinal Evaluation of base and fine-tuned model}
+To assess the effectiveness of the fine-tuning process, we conducted a functional evaluation using the HumanEval benchmark, which consists of programming problems designed to test code generation capabilities. 
+Both models were provided with identical prompts, and the generated solutions were assessed on the following criteria:
+
+\begin{itemize}
+    \item \textbf{Correctness:} Whether the generated code produces the expected output for given test cases.
+    \item \textbf{Code Quality:} Readability, structure, and efficiency of the generated code.
+    \item \textbf{Error Handling:} Ability to handle edge cases and exceptions appropriately.
+\end{itemize}
+Quantitative metrics such as pass@k scores were calculated.
+
+\subsection{Functional Evaluation of Fine-Tuned and Code-LLaMA Models}
+To evaluate the performance of our fine-tuned \texttt{llama-2-7b} model against the \texttt{Code-LLaMA} model, we used the HumanEval benchmark, which consists of a set of programming problems designed to test code generation capabilities.
+
+Both models were provided with identical prompts, and the generated solutions were assessed on the following criteria:
+
+\begin{itemize}
+    \item \textbf{Correctness:} Whether the generated code produces the expected output for given test cases.
+    \item \textbf{Code Quality:} Readability, structure, and efficiency of the generated code.
+    \item \textbf{Error Handling:} Ability to handle edge cases and exceptions appropriately.
+\end{itemize}
+
+We computed quantitative metrics such as pass@k scores were calculated.
 
 
 
-\subsection{Summary of Evaluation Software Stack}
-The robustness of this evaluation was made possible by the following specific software components:
 
-\begin{table}[h]
-\centering
-\caption{Software Ecosystem Utilized for Evaluation}
-\label{tab:eval_tools}
-\begin{tabular}{l|l}
-\hline
-\textbf{Software Tool} & \textbf{Specific Evaluation Role} \\
-\hline
-Weights \& Biases & Live telemetry, hardware monitoring, and loss visualization \\
-Hugging Face Hub & Adapter storage, model card documentation, and versioning \\
-Human-Eval Execution & Sandbox environment for unit test execution (\texttt{check\_correctness}) \\
-Transformers/PEFT & Quantized model loading and LoRA adapter inference \\
-\texttt{re} / \texttt{json} & Post-processing model outputs and dataset management \\
-\hline
-\end{tabular}
-\end{table}
+\section{Ollama Implementation for Local Inference}
+\subsection{UseCase diagram}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/usecase.drawio.png}
+    \caption{UseCase diagram}
+    \label{fig:UseCase diagram}
+\end{figure}
 
-\subsection{Instruction Masking Strategy}
-To ensure the model learns to generate code rather than simply repeating the prompt, we applied a custom tokenization strategy. During the preparation of the training tensors, we set the \texttt{labels} for all tokens belonging to the "Instruction" and "System" prompts to $-100$. This signals the loss function to ignore these tokens, forcing the model's weights to update based solely on the accuracy of the generated "Response" tokens.
+\subsection{Class diagram}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/class_diagram.drawio.png}
+    \caption{Class Diagram}
+    \label{fig:Class Diagram}
+\end{figure}
+
+\subsection{Sequence diagram}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/sequence_diagram.png}
+    \caption{Sequence Diagram}
+    \label{fig:Sequence Diagram}
+\end{figure}
+
+\subsection{Component diagram}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/component_diagram.png}
+    \caption{Component Diagram}
+    \label{fig:Component Diagram}
+\end{figure}
+
+\subsection{Activity diagram}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/activity_diagram.png}
+    \caption{Activity Diagram}
+    \label{fig:Activity Diagram}
+\end{figure}
+
+
+
+
+
