@@ -25,20 +25,15 @@ The implementation relies on a specialized ecosystem of Python libraries designe
 
 \subsection{Frameworks and Libraries:}
 \begin{itemize}
-    \item \textbf{Numpy \& Pandas} for data manipulation and preprocessing.
-    \item \textbf{BitsAndBytes:} 
-    Provides the backend for \textbf{4-bit Quantization (NF4)}. It includes "Double Quantization" and "Paged Optimizers," which allow the model to operate within 24GB VRAM by offloading optimizer states to CPU RAM during memory spikes.    
-    \item \textbf{Transformers \& TRL:} 
-    Hugging Face's core libraries for model loading (\texttt{AutoModelForCausalLM}) and tokenization. The \texttt{Trainer} API was used to orchestrate the training loop and handle gradient accumulation.
-    \item \textbf{Optuna:} 
-    A hyperparameter optimization framework that utilizes the \textbf{Tree-structured Parzen Estimator (TPE)} to navigate the search space for learning rate, LoRA alpha, and dropout.      
-    \item \textbf{peft:}
-    A library for implementing Parameter-Efficient Fine-Tuning (PEFT) techniques, specifically LoRA adapters, which are crucial for reducing the number of trainable parameters and enabling fine-tuning on limited hardware.
-    \item \textbf{datasets:}
-
-    \item \textbf{pytorch:}
-
-    \item \textbf{}
+    \item \textbf{Numpy \& Pandas:} For efficient data manipulation and preprocessing.
+    \item \textbf{BitsAndBytes:} Provides the backend for \textbf{4-bit Quantization (NF4)}, including "Double Quantization" and "Paged Optimizers," which allow the model to run within 24GB VRAM by offloading optimizer states to CPU RAM during memory spikes.
+    \item \textbf{Transformers \& TRL:} Hugging Face libraries for model loading (\texttt{AutoModelForCausalLM}), tokenization, and training orchestration. The \texttt{Trainer} API handles gradient accumulation and training loops.
+    \item \textbf{Optuna:} A hyperparameter optimization framework using the \textbf{Tree-structured Parzen Estimator (TPE)} to search for optimal learning rate, LoRA alpha, and dropout values.
+    \item \textbf{peft:} Implements Parameter-Efficient Fine-Tuning (PEFT) techniques, such as LoRA adapters, reducing trainable parameters and enabling fine-tuning on limited hardware.
+    \item \textbf{datasets:} Hugging Face library for easy access to standard datasets and seamless integration with PyTorch/TensorFlow pipelines.
+    \item \textbf{PyTorch:} Deep learning framework used for model training, GPU acceleration, and autograd functionality.
+    \item \textbf{WandB:}
+    \item \textbf{Huggingface:}
 \end{itemize}
 
 \subsection{Development Environment:}

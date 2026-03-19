@@ -21,16 +21,6 @@ Where $V$ is the vocabulary size, $y_i$ is the ground truth (one-hot encoded), a
 \]
 
 
-
-\section{Grouped-Query Attention (GQA) Ratio}
-For Qwen2.5-Coder-1.5B, the memory efficiency is derived from the GQA ratio. Let $H_q$ be the number of query heads and $H_{kv}$ be the number of key-value heads. The memory savings factor $M$ compared to Multi-Head Attention (MHA) is:
-\[
-M = \frac{H_q}{H_{kv}}
-\]
-In our specific configuration for the 1.5B model, $H_q = 12$ and $H_{kv} = 2$, resulting in a $6\times$ reduction in KV cache memory footprint per sequence.
-
-
-
 \chapter{PROJECT BUDGET}
 The project budget is primarily allocated toward high-performance compute resources required for fine-tuning the 7-billion parameter model and the development of the local inference application.
 

@@ -487,6 +487,7 @@ P(x_t = v) = \frac{\exp(z_v)}{\sum_{v' \in V} \exp(z_{v'})}
 
 where $z_v$ is the logit corresponding to token $v$ in the vocabulary. This softmax layer allows the model to generate a probability distribution over all possible next tokens, enabling it to perform autoregressive generation by sampling or selecting the token with the highest probability at each step.
 
+
 \subsection{Sampling Stragegies}
 During inference, LLaMA-2 generates text by sampling from the probability distribution produced by the softmax output layer. Various sampling strategies can be employed to control the diversity and coherence of the generated text. Common strategies include:
 
@@ -757,6 +758,13 @@ After shuffling and de-duplication, the refined dataset was divided into two dis
 
 \section{Hyperparameter Tuning}
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/images/figures/hyperparameter_tuning_flowchart.drawio.png}
+    \caption{LLaMA-2 architecture}
+    \label{fig:llama}
+\end{figure}
+
 Hyperparameters such as learning rate, batch size, number of training epochs, LoRA rank, and regularization parameters play a critical role in determining the stability and effectiveness of the fine-tuning process. Unlike model parameters, which are learned during optimization, hyperparameters must be defined prior to training and directly influence convergence behavior, generalization performance, and computational efficiency.
 
 Formally, hyperparameter optimization can be expressed as:
@@ -953,11 +961,11 @@ where $A$ and $B$ are the LoRA adapters. This reduces the number of trainable pa
 \subsection{Instruction Masking Strategy}
 To ensure the model learns to generate code rather than simply repeating the prompt, we applied a custom tokenization strategy. During the preparation of the training tensors, we set the \texttt{labels} for all tokens belonging to the "Instruction" and "System" prompts to $-100$. This signals the loss function to ignore these tokens, forcing the model's weights to update based solely on the accuracy of the generated "Response" tokens.
 
-
-
 \section{Evaluation}
-Automatic metrics such as BLEU and CodeBLEU are used to compare generated code with reference solutions. BLEU measures n-gram similarity, while CodeBLEU also considers syntax, data flow, and semantic correctness. These metrics provide quantitative support to functional evaluation.
-
+Automatic metrics such as BLEU and CodeBLEU are used to compare generated code
+with reference solutions. BLEU measures n-gram similarity, while CodeBLEU also
+considers syntax, data flow, and semantic correctness. These metrics provide quantitative
+support to functional evaluation.
 \subsection{Validation Loss}
 During training, we monitor the validation loss $\mathcal{L}_{val}$ and perplexity $\text{PPL}$ to assess convergence and generalization. The validation loss is computed as the average cross-entropy loss on the held-out validation set:
 \begin{equation}
@@ -1040,7 +1048,7 @@ The human-eval score was found using the folllowing formula:
 \begin{equation}
 \text{pass@k} = 1 - \left(1 - \frac{c}{n}\right)^k
 \end{equation}
-The HumanEval Dataset:
+\subsubsection{OpenAI HumanEval Dataset}:
 To rigorously assess the logical reasoning and syntactic precision of the fine-tuned model, we utilize the \textbf{OpenAI HumanEval} dataset. This benchmark is the industry standard for evaluating the zero-shot programming capabilities of Large Language Models (LLMs), specifically focusing on functional correctness rather than mere text similarity.
 
 The HumanEval dataset consists of 164 hand-written Python programming problems. Each entry in the dataset is a structured triplet containing:
@@ -1072,5 +1080,32 @@ By evaluating at multiple $k$ values, we gain insight into both the model's reli
 By combining execution-based testing with similarity metrics, the evaluation ensures that the generated code is syntactically valid, logically correct, and semantically meaningful.
 
 
-\subsection{Ollama for Local Inference}
-Ollama is a local inference engine that allows us to run large language models on consumer hardware without the need for cloud-based APIs. By hosting the Qwen2.5-Coder-1.5B model on Ollama, we can perform high-throughput classification of our training data while maintaining data privacy and minimizing latency. This setup is crucial for efficiently filtering our dataset and ensuring that only high-quality, relevant code snippets are used for fine-tuning the Llama-2-7B model.
+\section{Ollama for Local Inference}
+
+Local inference is performed using \texttt{Ollama}, a lightweight framework designed to run large language models efficiently on consumer-grade hardware. Unlike traditional approaches that rely on cloud-based APIs, Ollama enables on-device deployment, thereby reducing dependency on external services.
+The fine-tuned \texttt{llama-2-7b} model is integrated into the Ollama environment to support downstream tasks such as code generation. By leveraging the available GPU resources on the local machine, the system performs inference with lower latency compared to remote execution. This setup is particularly advantageous in scenarios requiring real-time responses or operating under limited network connectivity.
+Furthermore, local deployment enhances data privacy and security, as sensitive inputs are processed entirely on the user's device without being transmitted to external servers. This makes the approach suitable for applications involving proprietary code or confidential data.
+Ollama serves as the inference layer in the overall pipeline. After model fine-tuning, the trained weights are exported and loaded into the Ollama runtime, where they are queried using structured prompts. 
+
+\subsection{Functional and Non-Functional Requirements}
+
+The use of Ollama for local inference satisfies both functional and non-functional requirements of the system.
+
+\textbf{Functional Requirements:}
+\begin{itemize}
+\item The system must generate code based on user prompts.
+\item The system must support inference using a fine-tuned \texttt{llama-2-7b} model.
+\item The system must allow prompt-based interaction for dynamic query handling.
+\end{itemize}
+
+Ollama fulfills these functional requirements by enabling seamless integration and execution of the fine-tuned model, allowing efficient processing of user inputs and generation of relevant outputs.
+
+\textbf{Non-Functional Requirements:}
+\begin{itemize}
+\item \textit{Performance:} Low latency inference is achieved through on-device GPU utilization.
+\item \textit{Privacy:} Data is processed locally, ensuring no external data transmission.
+\item \textit{Reliability:} The system operates independently of internet connectivity.
+\item \textit{Scalability:} Supports deployment across different local environments without reliance on cloud infrastructure.
+\end{itemize}
+
+By leveraging Ollama, the system effectively meets these non-functional requirements, making it suitable for real-world applications where efficiency, privacy, and reliability are critical.
