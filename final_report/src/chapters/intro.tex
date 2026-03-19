@@ -9,7 +9,7 @@ Currently, state-of-the-art LLMs are primarily accessed through APIs for code ge
 The standard Llama-2 7B model suffers from a significant quality gap, frequently producing syntactically incorrect or logically flawed Python code compared to massive proprietary systems \cite{Diehl2024Llama2Benchmark}. Furthermore, resource constraints make full fine-tuning inaccessible, as it exceeds the VRAM capacity of consumer-grade GPUs like the NVIDIA T4 or RTX 3060. It also face persistent logic issues, often guessing code structures and hallucinating during complex programming tasks rather than following a planned approach. 
 
 \section{Objectives}
-The primary objectives of this project is:
+The primary objective of this project is:
 \begin{itemize}
     \item To use QLoRA for compression and fine tuning of Llama-2 7B model so that it can run on standard consumer hardware for python code generation.
 \end{itemize}
