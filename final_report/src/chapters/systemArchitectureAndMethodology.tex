@@ -11,8 +11,8 @@ text generation, question answering, summarization, and code generation.
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/model.jpg}
-    \caption{LLaMA-2 architecture}
+    \includegraphics[width=0.5\textwidth]{src/images/figures/llama_2_architecture.png}
+    \caption{LLaMA-2 Architecture}
     \label{fig:llama}
 \end{figure}
 
@@ -68,13 +68,6 @@ previous tokens through a masked self-attention mechanism. This causal masking
 ensures that the prediction of a token depends only on preceding context, making
 the model suitable for text and code generation tasks.
 
-% --- FIGURE 1: GENERIC TRANSFORMER ARCHITECTURE ---
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.7\textwidth]{src/images/figures/llama2-arch.png}
-    \caption{LLaMA-2 Architecture}
-    \label{fig:transformer_architecture}
-\end{figure}
 
 
 Each decoder layer consists of a multi-head self-attention module followed by a
@@ -112,12 +105,11 @@ The chat variant, commonly referred to as \textit{LLaMA-2-Chat}, is trained usin
 
 To structure conversations, the chat model uses a prompt template that includes system instructions and user messages. A typical format uses special tokens such as \texttt{[INST]} and \texttt{[/INST]} to mark the user's instruction. This format helps the model distinguish between instructions and responses during both training and inference.
 
-\begin{verbatim}
+\begin{Verbatim}[breaklines=true, breakanywhere=true, fontsize=\small]
 <s>[INST] Explain recursion in simple terms. [/INST]
-Recursion is a programming technique where a function calls itself
-to solve smaller parts of the same problem.
+Recursion is a programming technique where a function calls itself to solve smaller parts of the same problem.
 </s>
-\end{verbatim}
+\end{Verbatim}
 
 The chat model is designed to maintain conversational context across multiple turns, making it suitable for applications such as virtual assistants, chatbots, coding assistants, tutoring systems, and question-answering systems. Compared to the base LLaMA 2 model, the chat version typically produces responses that are more structured, instruction-following, and aligned with user intent.
 
