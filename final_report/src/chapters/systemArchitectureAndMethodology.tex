@@ -118,13 +118,13 @@ In summary, the chat model of LLaMA 2 enhances the base language model by incorp
 
 \subsection{Laws of scaling}
 Scaling laws describe predictable patterns in how a model’s performance changes when three main aspects are scaled:
-\begin{itemize}
+\begin{enumerate}
     \item Model size (parameters)
     \item Dataset size (training tokens/examples)
     \item Compute (FLOPs / training steps)
-\end{itemize}
+\end{enumerate}
 The core idea, originally discovered in neural language models, is:
-When you increase model size, data size, and compute in suitable proportions, error decreases according to a power-law relationship.
+When you increase model size, data size, and compute in suitable proportions, error decreases according to a power-law relationship \cite{Kaplan2020Scaling}.
 
 \subsubsection{Mathematical Formulation of Scaling Laws}
 
@@ -199,15 +199,17 @@ positional information.The primary architectural enhancements over LLaMA-1 inclu
 length of 4096 tokens.
 
 \subsection{AdamW Optimizer}
-The AdamW optimizer is a variant of the Adam optimization algorithm that incorporates decoupled weight decay regularization. It is designed to improve generalization performance by applying weight decay directly to the parameters rather than to the gradients, which can lead to more effective regularization and better convergence properties. The update rule for AdamW can be expressed as follows:
+The AdamW optimizer is a variant of the Adam optimization algorithm that incorporates decoupled weight decay regularization. It is designed to improve generalization performance by applying weight decay directly to the parameters rather than to the gradients, which can lead to more effective regularization and better convergence properties. The update rule for AdamW is expressed in Equation~\eqref{eq:adamw_update}:
 \begin{equation}
+    \label{eq:adamw_update}
     \theta_{t+1} = \theta_t - \eta \left( \frac{m_t}{\sqrt{v_t} + \epsilon} + \lambda \theta_t \right)
 \end{equation}
 where $\theta_t$ represents the model parameters at time $t$, $\eta$ is the learning rate, $m_t$ and $v_t$ are the first and second moments of the gradients, $\epsilon$ is a small constant for numerical stability, and $\lambda$ is the weight decay coefficient. AdamW has been shown to be effective in training large language models, providing improved convergence and generalization compared to traditional Adam, especially when training with large batch sizes or on large datasets.
 
 \subsection{Cosine Learning Rate Scheduler}
-The cosine learning rate scheduler is a method for adjusting the learning rate during training, following a cosine decay pattern. This approach helps in stabilizing the training process and can lead to better generalization performance. The learning rate is updated according to the following formula:
+The cosine learning rate scheduler is a method for adjusting the learning rate during training, following a cosine decay pattern. This approach helps in stabilizing the training process and can lead to better generalization performance. The learning rate is updated according to equation \eqref{eq:cosine_scheduler}:
 \begin{equation}
+    \label{eq:cosine_scheduler}
     \eta_t = \eta_{\min} + \frac{1}{2} (\eta_{\max} - \eta_{\min}) \left(1 + \cos\left(\frac{\pi t}{T}\right)\right)
 \end{equation}
 where $\eta_{\max}$ and $\eta_{\min}$ are the maximum and minimum learning rates, $t$ is the current iteration, and $T$ is the total number of iterations. The cosine scheduler allows for a gradual decrease in the learning rate, which can help the model converge more smoothly and avoid getting stuck in local minima. It is particularly effective when combined with warm-up strategies at the beginning of training.
@@ -218,9 +220,10 @@ where $\eta_{\max}$ and $\eta_{\min}$ are the maximum and minimum learning rates
 \subsection{Input Sequence Representation}
 The LLaMA-2 7B Chat model utilizes a specific structured input format to distinguish between system-level instructions, user prompts, and model responses. This structure is essential for maintaining the conversational context and safety constraints during inference. 
 
-The general input sequence $\mathbf{X}$ is represented as:
+The general input sequence $\mathbf{X}$ is represented in \eqref{eq:input_sequence}:
 
 \begin{equation}
+    \label{eq:input_sequence}
 \mathbf{X} = \langle s \rangle \; [\text{INST}] \; \ll \text{SYS} \gg \, S \, \ll / \text{SYS} \gg \, I \; [/\text{INST}] \; R \; \langle /s \rangle
 \end{equation}
 
@@ -246,14 +249,14 @@ Let:
     \item $R = \text{"def factorial(n): \ldots"}$
 \end{itemize}
 
-The complete input sequence $\mathbf{X}$ is constructed by concatenating these components within the specialized control tokens as shown in Equation \ref{eq:llama_example}.
+The complete input sequence $\mathbf{X}$ is constructed by concatenating these components within the specialized control tokens as shown in \ref{eq:llama_example}.
 
 \begin{equation}
 \label{eq:llama_example}
 \begin{aligned}
 \mathbf{X} = \langle s \rangle & \; [\text{INST}] \; \ll \text{SYS} \gg \text{You are a Python code assistant.} \ll / \text{SYS} \gg \\
 & \text{Write a function to compute factorial.} \; [/ \text{INST}] \\
-& \text{```def factorial(n): ...```} \; \langle /s \rangle
+& \text{''def factorial(n): ...''} \; \langle /s \rangle
 \end{aligned}
 \end{equation}
 
@@ -290,7 +293,7 @@ After several iterations, frequently occurring subword units such as \textit{lo}
 % --- FIGURE 2: FIRST STEP OF NLP IN TRANSFORMER ---
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth]{src/images/figures/first-step.png}
+    \includegraphics[width=0.8\textwidth]{src/images/figures/Tokenization.png}
     \caption{First Step of NLP in Transformer}
     \label{fig:First_Step}
 \end{figure}
@@ -327,8 +330,8 @@ By implementing pre-normalization with RMSNorm, LLaMA-2 ensures more robust grad
 
 
 
-\subsection{Multi-Head Attention (MHA)}
-Multi-Head Attention is a fundamental mechanism in the transformer architecture, utilized specifically in the LLaMA-2 7B and 13B variants. MHA enables the model to jointly attend to information from different representation subspaces at different positions, which is critical for capturing complex semantic relationships between tokens.
+\subsection{Multi-Head Attention}
+Multi-Head Attention (MHA) is a fundamental mechanism in the transformer architecture, utilized specifically in the LLaMA-2 7B and 13B variants. MHA enables the model to jointly attend to information from different representation subspaces at different positions, which is critical for capturing complex semantic relationships between tokens.
 
 
 
@@ -340,12 +343,11 @@ Given input embeddings $\mathbf{X} \in \mathbb{R}^{n \times d}$, where $n$ is th
 
 where $W^Q, W^K, W^V \in \mathbb{R}^{d \times d_k}$ are learned weight matrices, and $d_k = d/h$ represents the dimension of each of the $h$ attention heads.
 
-% --- FIGURE 3: SCALED DOT PRODUCT ATTENTION ---
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/Dot-product-attention.png}
-    \caption{Scaled Dot-Product Attention Mechanism}
-    \label{fig:scaled_attention_dot_product}
+    \includegraphics[width=0.5\textwidth]{src/images/figures/multihead_attention.png}
+    \caption{Multi-Head Attention Mechanism}
+    \label{fig:multihead_attention}
 \end{figure}
 
 
@@ -366,7 +368,7 @@ This parallel processing allows the model to capture various linguistic features
 \subsection{Rotary Positional Embeddings (RoPE)}
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/RoPE.png}
+    \includegraphics[width=\textwidth]{src/images/figures/rope.png}
     \caption{Rotary Positional Embeddings}
     \label{fig:Rotary Positional Embeddings}
 \end{figure}
@@ -427,10 +429,11 @@ Following the rotation, the transformed query matrix $\mathbf{Q}'$ and key matri
 
 This rotation allows the attention mechanism to *implicitly encode relative positions* between tokens, improving the model's ability to generalize to sequences longer than those seen during training.
 
-\subsection{Feed-Forward Network (FFN)}
-The Feed-Forward Network (FFN) in LLaMA-2 is a crucial component of each transformer decoder layer, responsible for introducing non-linearity and enhancing the model's capacity to capture complex patterns. The FFN consists of two linear transformations with an activation function in between, typically implemented as:
+\subsection{Feed-Forward Network}
+The Feed-Forward Network (FFN) in LLaMA-2 is a crucial component of each transformer decoder layer, responsible for introducing non-linearity and enhancing the model's capacity to capture complex patterns. The FFN consists of two linear transformations with an activation function in between, as in equation \eqref{eq:ffn}:
 
 \begin{equation}
+    \label{eq:ffn}
 \text{FFN}(\mathbf{x}) = \text{SwiGLU}(\mathbf{x} W_1) W_2
 \end{equation}
 
@@ -465,16 +468,17 @@ where $\odot$ denotes the Hadamard (element-wise) product. The SiLU (Sigmoid Lin
 By gating the linear transformation $\mathbf{a}$ with the non-linear SiLU output of $\mathbf{b}$, SwiGLU allows the network to model complex patterns more effectively through controlled information flow.
 
 \subsection{Softmax Output Layer}
-The final output layer of the LLaMA-2 model is a linear transformation followed by a softmax function, which converts the model's hidden state into a probability distribution over the vocabulary for token prediction. Given the output from the last transformer decoder layer $\mathbf{h} \in \mathbb{R}^{n \times d}$, where $n$ is the sequence length and $d$ is the hidden dimension, the output logits are computed as:
+The final output layer of the LLaMA-2 model is a linear transformation followed by a softmax function, which converts the model's hidden state into a probability distribution over the vocabulary for token prediction. Given the output from the last transformer decoder layer $\mathbf{h} \in \mathbb{R}^{n \times d}$, where $n$ is the sequence length and $d$ is the hidden dimension, the output logits are computed using equation \eqref{eq:output_logits}:
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/softmax_layer.png}
-    \caption{Scaled Dot-Product Attention Mechanism}
-    \label{fig:scaled_attention_dot_product}
+    \includegraphics[width=\textwidth]{src/images/figures/softmax_layer.png}
+    \caption{Softmax Output Layer}
+    \label{fig:softmax_output_layer}
 \end{figure}
 
 \begin{equation}
+    \label{eq:output_logits}
 \mathbf{z} = \mathbf{h} W^{\text{out}} + b^{\text{out}}
 \end{equation}
 
@@ -593,7 +597,7 @@ def factorial(n):
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/quen-model.png}
+    \includegraphics[width=\textwidth]{src/images/figures/quen-model.png}
     \caption{Qwen2.5-Coder-1.5B Model Architecture}
     \label{fig:Qwen2.5-Coder-1.5B Model Architecture}
 \end{figure}
@@ -663,6 +667,7 @@ For the automated data cleaning and classification phase, we evaluated several c
 \centering
 \caption{Comparison of Classification Engines for Data Preprocessing}
 \label{tab:model_comparison}
+\begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{|l|c|c|c|c|}
 \hline
 \textbf{Model} & \textbf{Params} & \textbf{VRAM (4-bit)} & \textbf{Code Reasoning} & \textbf{Tokens/Sec} \\ \hline
@@ -671,6 +676,7 @@ Llama-2-7B & 7B & $\sim$5.2 GB & Moderate & $\sim$45 \\
 CodeLlama-7B & 7B & $\sim$5.5 GB & High & $\sim$42 \\
 \textbf{Qwen2.5-Coder-1.5B} & \textbf{1.5B} & \textbf{$\sim$1.2 GB} & \textbf{Superior} & \textbf{$\sim$120+} \\ \hline
 \end{tabular}
+\end{adjustbox}
 \end{table}
 
 \subsubsection{Technical Rationale}
@@ -716,12 +722,12 @@ A composite dataset was constructed by merging two primary high-quality sources 
 
 
 \subsection{Automated Classification and Quality Control}
-To ensure the model specialized in competitive programming rather than generic boilerplate code, we implemented an automated filtration layer. This prevented the model from learning suboptimal coding practices or irrelevant "noise."
+To ensure the model specialized in competitive programming rather than generic boilerplate code, we implemented an automated filtration layer. This prevented the model from learning suboptimal coding practices or irrelevant "noise".
 
 \begin{enumerate}
-    \item \textbf{Syntactic Verification:} Initial scripts utilized Python's \texttt{ast} (Abstract Syntax Trees) module to parse every code snippet. Entries containing syntax errors or incomplete blocks were immediately discarded.
-    \item \textbf{Teacher-Model Classification:} We utilized the \texttt{Qwen2.5-Coder-1.5B} model as a zero-shot classifier. Each entry was labeled based on its domain (e.g., "Algorithmic," "Web Development," "Data Science"). We prioritized the "Algorithmic" subset to maximize the model's problem-solving density.
-    \item \textbf{Heuristic Pruning:} Entries with excessively short responses were filtered to maintain a high information-to-token ratio.
+    \item \textbf{Syntactic Verification:} Initial scripts utilized Python's Abstract Syntax Trees (AST) module to parse every code snippet. Entries containing syntax errors or incomplete blocks were immediately discarded.
+    \item \textbf{Teacher-Model Classification:} We utilized the \texttt{Qwen2.5-Coder-1.5B} model as a zero-shot classifier. Each entry was labeled based on its domain (e.g. "Algorithmic", "Web Development", "Data Science"). We prioritized the "Algorithmic" subset to maximize the model's problem-solving density.
+    \item \textbf{Heuristic Pruning:} Entries with responses less then 7 words were filtered to maintain a high information-to-token ratio.
 \end{enumerate}
 
 
@@ -741,7 +747,7 @@ To leverage the conversational strengths of Llama-2, each sample was mapped to a
 The \texttt{System\_Prompt} consistently defined the model as a "highly proficient Python developer," while the \texttt{[INST]} tags isolated the user's requirements from the expected response.
 
 \subsection{Tokenization and Instruction Masking}
-The Llama-2 BPE (Byte-Pair Encoding) tokenizer was used to convert text into discrete numerical identifiers with a maximum sequence length of 2048 tokens. 
+The Llama-2 BPE (Byte-Pair Encoding) tokenizer was used to convert text into discrete numerical identifiers with a maximum sequence length of 4096 tokens. 
 
 
 
@@ -750,7 +756,7 @@ A critical implementation detail in our methodology is \textbf{Instruction Maski
 \subsection{Dataset Distribution}
 After shuffling and de-duplication, the refined dataset was divided into two distinct subsets to ensure robust training and unbiased evaluation:
 \begin{itemize}
-    \item \textbf{Training Set (90\%):} Used for the primary gradient updates via the QLoRA adapters.
+    \item \textbf{Training Set (90\%):} Used for the primary gradient updates via the QLoRA adapters where 5\% of the training data was reserved for validation.
     \item \textbf{Test Set (10\%):} Reserved for post-training evaluation using the HumanEval benchmark to measure the model's generalization to unseen problems.
 \end{itemize}
 
@@ -758,12 +764,6 @@ After shuffling and de-duplication, the refined dataset was divided into two dis
 
 \section{Hyperparameter Tuning}
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/hyperparameter_tuning_flowchart.drawio.png}
-    \caption{LLaMA-2 architecture}
-    \label{fig:llama}
-\end{figure}
 
 Hyperparameters such as learning rate, batch size, number of training epochs, LoRA rank, and regularization parameters play a critical role in determining the stability and effectiveness of the fine-tuning process. Unlike model parameters, which are learned during optimization, hyperparameters must be defined prior to training and directly influence convergence behavior, generalization performance, and computational efficiency.
 
@@ -846,7 +846,7 @@ Quantized Low-Rank Adaptation (QLoRA) is a parameter-efficient fine-tuning (PEFT
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/with_qlora.png}
+    \includegraphics[width=\textwidth]{src/images/figures/llama_with_qlora.png}
     \caption{Llama model with QLoRA}
     \label{fig:Llama_with_QLoRA}
 \end{figure}
@@ -865,19 +865,32 @@ In this expression, $Q(\cdot)$ denotes the quantization function that maps high-
 \subsection{4-bit NormalFloat (NF4) and Memory Optimization}
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/double quantization.png}
+    \includegraphics[width=\textwidth]{src/images/figures/double quantization.png}
     \caption{Double Quantization}
     \label{fig:Double Quantization}
 \end{figure}
-To achieve the goal of fitting the Llama-2-7b model into approximately 5GB of VRAM, we move beyond standard linear quantization to \textbf{4-bit NormalFloat (NF4)} and \textbf{Double Quantization}.\subsubsection{4-bit NormalFloat (NF4) Data Type}The weights of pre-trained LLMs typically follow a zero-centered normal distribution with a standard deviation $\sigma$. NF4 is an information-theoretically optimal data type built on \textit{Quantile Quantization}. Instead of mapping weights to an evenly spaced grid, NF4 maps them to the quantiles of a theoretical $N(0, 1)$ distribution.The quantization constants are calculated such that each of the 16 discrete levels in the 4-bit bin has an equal expected number of values. For a weight $w$, the NF4 quantization is expressed as:\begin{equation}q_i = \frac{1}{2} \left( Q_z\left(\frac{i}{2^k+1}\right) + Q_z\left(\frac{i+1}{2^k+1}\right) \right)\end{equation}where $Q_z(\cdot)$ is the cumulative distribution function (CDF) of the standard normal distribution. This ensures that the precision is highest where the weight density is greatest (near zero), significantly reducing the quantization error compared to standard 4-bit integers or floats.\subsubsection{Double Quantization (DQ)}While NF4 reduces the weight size, the \textit{quantization constants} (the scaling factors used for each block of weights) still consume significant VRAM. In a standard setup, a block size of 64 requires a 32-bit constant for every 64 weights, adding roughly 0.5 bits per parameter.\textbf{Double Quantization} treats these 32-bit constants as inputs to a \textit{second} layer of quantization. These constants are quantized into 8-bit floats ($FP8$) with a secondary block size of 256. The memory savings are calculated as:\begin{equation}\text{Memory Savings} = \underbrace{\frac{32}{64}}{\text{Single Quant}} - \underbrace{\left( \frac{8}{64} + \frac{32}{64 \cdot 256} \right)}{\text{Double Quant}} \approx 0.37 \text{ bits per parameter}\end{equation}By implementing DQ, the overhead of quantization constants is reduced from 0.5 bits/set to approximately 0.127 bits/set, allowing the total memory footprint of the Llama-2-7b model to drop to $\sim$4.8GB, well within the limits of consumer-grade hardware like the NVIDIA T4 or L4.\subsubsection{Paged Optimizers}To further prevent Out-of-Memory (OOM) errors during the backward pass, we utilize \textbf{Paged Optimizers} via the \texttt{bitsandbytes} library. This mechanism leverages NVIDIA's Unified Memory feature to map the optimizer states (e.g., AdamW moments) to the CPU RAM when the GPU's VRAM is exhausted, and pages them back during the update step. This provides a safety net for the 512-token sequence lengths used in our code generation tasks.
+To achieve the goal of fitting the Llama-2-7b model into approximately 5GB of VRAM, we move beyond standard linear quantization to \textbf{4-bit NormalFloat (NF4)} and \textbf{Double Quantization}.
+
+\subsubsection{4-bit NormalFloat (NF4) Data Type}
+The weights of pre-trained LLMs typically follow a zero-centered normal distribution with a standard deviation $\sigma$. NF4 is an information-theoretically optimal data type built on \textit{Quantile Quantization}. Instead of mapping weights to an evenly spaced grid, NF4 maps them to the quantiles of a theoretical $N(0, 1)$ distribution.The quantization constants are calculated such that each of the 16 discrete levels in the 4-bit bin has an equal expected number of values. For a weight $w$, the NF4 quantization is expressed \eqref{eq:nf4}
+\begin{equation}
+    \label{eq:nf4}
+    q_i = \frac{1}{2} \left( Q_z\left(\frac{i}{2^k+1}\right) + Q_z\left(\frac{i+1}{2^k+1}\right) \right)
+\end{equation}
+where $Q_z(\cdot)$ is the cumulative distribution function (CDF) of the standard normal distribution. This ensures that the precision is highest where the weight density is greatest (near zero), significantly reducing the quantization error compared to standard 4-bit integers or floats.
+
+\subsubsection{Double Quantization}
+While NF4 reduces the weight size, the \textit{quantization constants} (the scaling factors used for each block of weights) still consume significant VRAM. In a standard setup, a block size of 64 requires a 32-bit constant for every 64 weights, adding roughly 0.5 bits per parameter.\textbf{Double Quantization} treats these 32-bit constants as inputs to a \textit{second} layer of quantization. These constants are quantized into 8-bit floats ($FP8$) with a secondary block size of 256. The memory savings are calculated using equation \eqref{eq:memory_savings}
+\begin{equation}
+    \label{eq:memory_savings}
+    \text{Memory Savings} = \underbrace{\frac{32}{64}}{\text{Single Quant}} - \underbrace{\left( \frac{8}{64} + \frac{32}{64 \cdot 256} \right)}{\text{Double Quant}} \approx 0.37 \text{ bits per parameter}
+\end{equation}
+By implementing DQ, the overhead of quantization constants is reduced from 0.5 bits/set to approximately 0.127 bits/set, allowing the total memory footprint of the Llama-2-7b model to drop to $\sim$4.8GB, well within the limits of consumer-grade hardware like the NVIDIA T4 or L4.
+
+\subsubsection{Paged Optimizers}To further prevent Out-of-Memory (OOM) errors during the backward pass, we utilize \textbf{Paged Optimizers} via the \texttt{bitsandbytes} library. This mechanism leverages NVIDIA's Unified Memory feature to map the optimizer states (e.g., AdamW moments) to the CPU RAM when the GPU's VRAM is exhausted, and pages them back during the update step. This provides a safety net for the 512-token sequence lengths used in our code generation tasks.
 
 \subsubsection{Low-Rank Adaptation (LoRA)}
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/lora2.png}
-    \caption{LoRA Architecture}
-    \label{fig:LoRA Architecture}
-\end{figure}
+
 Instead of updating the entire quantized matrix $\mathbf{W}_q$, which remains frozen, LoRA introduces trainable low-rank matrices $\mathbf{A} \in \mathbb{R}^{d \times r}$ and $\mathbf{B} \in \mathbb{R}^{r \times k}$ where the rank $r \ll \min(d,k)$. The adapted weight matrix is expressed as:
 
 \begin{equation}
@@ -1048,7 +1061,7 @@ The human-eval score was found using the folllowing formula:
 \begin{equation}
 \text{pass@k} = 1 - \left(1 - \frac{c}{n}\right)^k
 \end{equation}
-\subsubsection{OpenAI HumanEval Dataset}:
+\subsubsection{OpenAI HumanEval Dataset}
 To rigorously assess the logical reasoning and syntactic precision of the fine-tuned model, we utilize the \textbf{OpenAI HumanEval} dataset. This benchmark is the industry standard for evaluating the zero-shot programming capabilities of Large Language Models (LLMs), specifically focusing on functional correctness rather than mere text similarity.
 
 The HumanEval dataset consists of 164 hand-written Python programming problems. Each entry in the dataset is a structured triplet containing:
@@ -1056,7 +1069,7 @@ The HumanEval dataset consists of 164 hand-written Python programming problems. 
     \item \textbf{Task ID:} A unique identifier for the specific coding challenge.
     \item \textbf{Prompt:} This includes a function signature, a natural language docstring describing the requirements, and a set of example test cases (assertions) to provide context for the model.
     \item \textbf{Canonical Solution:} A reference Python implementation that serves as the gold standard for a successful solve.
-    \item \textbf{Test Suite:} A robust set of hidden unit tests (averaging 7.7 tests per problem). To be considered "correct," the generated code must pass every test in this suite without exception.
+    \item \textbf{Test Suite:} A robust set of hidden unit tests (averaging 7.7 tests per problem). To be considered "correct", the generated code must pass every test in this suite without exception.
 \end{itemize}
 
 
@@ -1067,7 +1080,7 @@ The challenges within the dataset range from basic string manipulation and arith
 While a simple success rate measures if a model can solve a problem in one attempt, code generation is inherently stochastic. We therefore utilize the \textbf{pass@k} metric. In our software implementation, we follow the unbiased estimator defined by OpenAI to account for high variance in small sample sizes:
 
 \begin{equation}
-\text{pass@k} := \mathbb{E}_{\text{Problems}} \left[ 1 - \frac{\binom{n-c}{k}}{\binom{n}{k}} \right]
+\text{pass@k} = \mathbb{E}_{\text{Problems}} \left[ 1 - \frac{\binom{n-c}{k}}{\binom{n}{k}} \right]
 \end{equation}
 
 Where:
@@ -1091,7 +1104,7 @@ Ollama serves as the inference layer in the overall pipeline. After model fine-t
 
 The use of Ollama for local inference satisfies both functional and non-functional requirements of the system.
 
-\textbf{Functional Requirements:}
+\textbf{Functional Requirements}
 \begin{itemize}
 \item The system must generate code based on user prompts.
 \item The system must support inference using a fine-tuned \texttt{llama-2-7b} model.
@@ -1100,7 +1113,7 @@ The use of Ollama for local inference satisfies both functional and non-function
 
 Ollama fulfills these functional requirements by enabling seamless integration and execution of the fine-tuned model, allowing efficient processing of user inputs and generation of relevant outputs.
 
-\textbf{Non-Functional Requirements:}
+\textbf{Non-Functional Requirements}
 \begin{itemize}
 \item \textit{Performance:} Low latency inference is achieved through on-device GPU utilization.
 \item \textit{Privacy:} Data is processed locally, ensuring no external data transmission.

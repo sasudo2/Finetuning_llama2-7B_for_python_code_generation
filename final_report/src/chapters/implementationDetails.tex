@@ -1,7 +1,7 @@
 \chapter{IMPLEMENTATION DETAILS}
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/implementation.png}
+    \includegraphics[width=0.5\textwidth]{src/images/figures/implementation.drawio.png}
     \caption{Methodology}
     \label{fig:Implementation of the project}
 \end{figure}
@@ -13,7 +13,7 @@ Fine-tuning Llama-2 7B for Python code generation requires a high-quality, domai
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth]{src/images/figures/data_flow.drawio.png}
+    \includegraphics[width=0.8\textwidth]{src/images/figures/data_preparation.png}
     \caption{Dataset Preparation Pipeline}
     \label{fig:First_Step}
 \end{figure}
@@ -21,21 +21,22 @@ Fine-tuning Llama-2 7B for Python code generation requires a high-quality, domai
 \subsection{Dataset Sources}
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/Flytech.png}
+    \includegraphics[width=\textwidth]{src/images/figures/Flytech.png}
     \caption{Flytech datasets}
     \label{fig:Flytech datasets}
 \end{figure}
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/alpaca.png}
+    \includegraphics[width=\textwidth]{src/images/figures/alpaca.png}
     \caption{Alpaca datasets}
     \label{fig:Alpaca datasets}
 \end{figure}
 
 \begin{table}[h!]
+\caption{Datasets used for fine-tuning Llama-2 7B for Python code generation.}
 \centering
-\begin{tabular}{|p{5cm}|p{2cm}|p{6cm}|p{2cm}|}
+\begin{tabular}{|p{3cm}|p{2cm}|p{3cm}|p{2cm}|}
 \hline
 \textbf{Dataset} & \textbf{Size} & \textbf{Description} & \textbf{License} \\
 \hline
@@ -44,7 +45,7 @@ FlyTech Python Code Dataset (2025) & $\sim$42,000 pairs & Python scripts with co
 Python Code Instructions 18k (Alpaca-style) & $\sim$18,000 pairs & Instruction prompts and Python responses. Matches instruction-tuning structure; provides human-readable prompts and increases prompt diversity. & CC BY-NC 4.0 \\
 \hline
 \end{tabular}
-\caption{Datasets used for fine-tuning Llama-2 7B for Python code generation.}
+
 \end{table}
 
 \subsection{Dataset Preparation and Refinement}
@@ -128,7 +129,7 @@ The selection of the optimal threshold was determined empirically. We evaluated 
         \midrule
         Min. Word Count & $> 7$ tokens & Ensures functional complexity and presence of a return block. \\
         Max. Repetition Ratio & $< 0.4$ & Filters out circular logic and redundant boilerplate; selected via empirical testing. \\
-        Syntactic Correctness & \texttt{ast.parse()} & Guarantees that all training signals are compilable and syntactically valid code. \\
+        Syntactic Correctness & \texttt{ast.parse} & Guarantees that all training signals are compilable and syntactically valid code. \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -144,16 +145,18 @@ To ensure the model prioritizes functional logic over natural language explanati
 \centering
 \caption{Dataset Distillation and Logic Density Improvement}
 \label{tab:distillation}
+\begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{lccc}
 \toprule
 \textbf{Stage} & \textbf{Sample Count} & \textbf{Avg. Tokens/Sample} & \textbf{Est. Logic Density} \\ 
 \midrule
-Raw Combined               & 60,000 & Low \\
-Filtered (Logic Only)      & 34,000 & Medium \\
-Refined (Functional/Clean) & 21,542 & High \\
+Raw Combined               & 60,000 & --  & Low \\
+Filtered (Logic Only)      & 34,000 & --  & Medium \\
+Refined (Functional/Clean) & 21,542 & --  & High \\
 \textbf{Final (Functional-Only)} & \textbf{13,914} & \textbf{164} & \textbf{Very High} \\ 
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \end{table}
 
 \subsubsection{Regex-Based Feature Isolation}
@@ -171,6 +174,7 @@ The transformation process can be represented by the mapping function $f(C) \rig
     \centering
     \caption{Preprocessing Impact of Docstring Removal}
     \label{tab:comment_removal}
+    \begin{adjustbox}{max width=\textwidth}
     \begin{tabular}{lll}
         \toprule
         \textbf{Element Removed} & \textbf{Pattern Strategy} & \textbf{Objective} \\
@@ -180,6 +184,7 @@ The transformation process can be represented by the mapping function $f(C) \rig
         Whitespace Trimming & \texttt{strip()} & Maintain clean indentation blocks \\
         \bottomrule
     \end{tabular}
+    \end{adjustbox}
 \end{table}
 
 \subsubsection{Impact on Training Efficiency}
