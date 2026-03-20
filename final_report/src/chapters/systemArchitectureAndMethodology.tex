@@ -117,7 +117,7 @@ In summary, the chat model of LLaMA 2 enhances the base language model by incorp
 
 
 \subsection{Laws of scaling}
-Scaling laws describe predictable patterns in how a model’s performance changes when you scale three main aspects:
+Scaling laws describe predictable patterns in how a model’s performance changes when three main aspects are scaled:
 \begin{itemize}
     \item Model size (parameters)
     \item Dataset size (training tokens/examples)
@@ -226,7 +226,7 @@ The general input sequence $\mathbf{X}$ is represented as:
 
 Where the components are defined as follows:
 \begin{itemize}
-    \item $\langle s \rangle$: The Start-of-Sequence (BOS) token.
+    \item $\langle s \rangle$: The Start-of-Sequence (SOS) token.
     \item $[\text{INST}]$: Special tag indicating the beginning of a user instruction.
     \item $\ll \text{SYS} \gg S \ll / \text{SYS} \gg$: The system prompt $S$, which defines the model's persona or operational constraints.
     \item $I$: The specific instruction or query provided by the user.
@@ -466,6 +466,14 @@ By gating the linear transformation $\mathbf{a}$ with the non-linear SiLU output
 
 \subsection{Softmax Output Layer}
 The final output layer of the LLaMA-2 model is a linear transformation followed by a softmax function, which converts the model's hidden state into a probability distribution over the vocabulary for token prediction. Given the output from the last transformer decoder layer $\mathbf{h} \in \mathbb{R}^{n \times d}$, where $n$ is the sequence length and $d$ is the hidden dimension, the output logits are computed as:
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/images/figures/softmax_layer.png}
+    \caption{Scaled Dot-Product Attention Mechanism}
+    \label{fig:scaled_attention_dot_product}
+\end{figure}
+
 \begin{equation}
 \mathbf{z} = \mathbf{h} W^{\text{out}} + b^{\text{out}}
 \end{equation}
@@ -959,7 +967,7 @@ with reference solutions. BLEU measures n-gram similarity, while CodeBLEU also
 considers syntax, data flow, and semantic correctness. These metrics provide quantitative
 support to functional evaluation.
 \subsection{Validation Loss}
-During training, we monitor the validation loss $\mathcal{L}_{val}$ and perplexity $\text{PPL}$ to assess convergence and generalization. The validation loss is computed as the average cross-entropy loss on the held-out validation set:
+During training, we monitor the validation loss $\mathcal{L}_{val}$. The validation loss is computed as the average cross-entropy loss on the held-out validation set:
 \begin{equation}
 \mathcal{L}_{val} = - \frac{1}{N_{val}} \sum_{i=1}^{N_{val}} \sum_{t=1}^{T_i} \log P_\theta(y_{i,t} \mid y_{i,<t}, x_i)
 \end{equation}

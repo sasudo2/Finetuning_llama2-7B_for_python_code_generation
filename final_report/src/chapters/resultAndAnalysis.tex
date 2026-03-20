@@ -68,6 +68,13 @@ Dataflow Match & 0.3749 & 0.3670 & -0.0079 \\ \bottomrule
 \end{tabular}
 \end{table}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{src/images/figures/score_between_quantize_and_unquantize.png}
+    \caption{BLEU and CodeBLEU score of quantized and unquantized model}
+    \label{fig:BLEU and CodeBLEU score of quantized and unquantized model}
+\end{figure}
+
 \subsection{Results Interpretation}
 The results in Table \ref{tab:quantization_results} reveal several key insights into the robustness of the QLoRA approach:
 
@@ -87,6 +94,70 @@ The analysis proves that 4-bit NF4 quantization is an "order-of-magnitude" impro
 \section{Hyperparameter Optimization and Training Stability}
 To maximize the predictive performance of the fine-tuned Llama-2-7B model, we conducted an automated hyperparameter optimization (HPO) study using the Optuna Bayesian optimization framework. This section details the search space, the impact of specific parameters on model convergence, and the final selected configuration.
 
+\begin{table}[ht]
+\centering
+\caption{Optuna Hyperparameter Optimization Results}
+\label{tab:optuna_results}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{c c c c c c c c}
+\hline
+Trial & Learning Rate & Scheduler & LoRA r & LoRA $\alpha$ & Dropout & Batch Size & Loss \\
+\hline
+
+0  & 1.31e-05 & linear & 8  & 8  & 0.052 & 4  & 1.0179 \\
+1  & 1.02e-05 & cosine & 16 & 32 & 0.129 & 16 & 1.1336 \\
+2  & 1.79e-05 & cosine\_wr & 8  & 16 & 0.062 & 16 & 1.1340 \\
+3  & 1.92e-05 & cosine\_wr & 16 & 8  & 0.142 & 8  & 1.1094 \\
+4  & 1.34e-05 & cosine & 16 & 32 & 0.127 & 16 & 1.1006 \\
+5  & 2.10e-05 & linear & 16 & 8  & 0.083 & 16 & 1.1972 \\
+6  & 9.37e-06 & cosine & 8  & 8  & 0.053 & 4  & 1.1143 \\
+7  & 1.11e-05 & cosine & 16 & 8  & 0.137 & 16 & 1.2436 \\
+8  & 2.33e-05 & linear & 32 & 8  & 0.092 & 16 & 1.1840 \\
+9  & 1.23e-05 & cosine & 8  & 8  & 0.054 & 4  & 1.0439 \\
+
+10 & 1.93e-05 & linear & 8  & 8  & 0.063 & 4  & 0.8273 \\
+11 & 1.61e-05 & linear & 32 & 32 & 0.073 & 4  & 0.6384 \\
+12 & 2.10e-05 & linear & 32 & 32 & 0.084 & 8  & 0.7245 \\
+13 & 2.88e-05 & linear & 32 & 32 & 0.061 & 8  & 0.6554 \\
+14 & 2.76e-05 & linear & 32 & 32 & 0.056 & 16 & 0.8816 \\
+15 & 1.61e-05 & linear & 32 & 16 & 0.105 & 4  & 0.7133 \\
+16 & 2.74e-05 & cosine & 8  & 32 & 0.054 & 8  & 0.6630 \\
+17 & 2.84e-05 & cosine\_wr & 32 & 16 & 0.077 & 8  & 0.8083 \\
+18 & 1.59e-05 & cosine\_wr & 32 & 32 & 0.078 & 4  & 0.6399 \\
+19 & 1.79e-05 & cosine\_wr & 32 & 32 & 0.105 & 4  & 0.6265 \\
+
+20 & 1.69e-05 & cosine\_wr & 32 & 32 & 0.131 & 16 & 1.0515 \\
+21 & 1.98e-05 & cosine\_wr & 32 & 32 & 0.095 & 4  & 0.6158 \\
+22 & 2.39e-05 & cosine\_wr & 32 & 8  & 0.097 & 4  & 0.7218 \\
+
+23 & 1.32e-05 & linear & 32 & 32 & 0.054 & 4  & 0.6650 \\
+24 & 2.08e-05 & cosine\_wr & 32 & 32 & 0.116 & 4  & 0.6111 \\
+25 & 1.88e-05 & cosine\_wr & 8  & 32 & 0.110 & 4  & 0.6201 \\
+26 & 1.53e-05 & cosine\_wr & 8  & 32 & 0.130 & 4  & 0.6453 \\
+27 & 2.51e-05 & cosine\_wr & 8  & 32 & 0.109 & 4  & 0.5957 \\
+28 & 2.90e-05 & cosine & 8  & 32 & 0.113 & 4  & 0.5864 \\
+29 & 2.36e-05 & cosine & 16 & 32 & 0.110 & 4  & 0.6001 \\
+30 & 2.97e-05 & cosine & 8  & 32 & 0.099 & 16 & 0.8539 \\
+31 & 2.86e-05 & cosine & 8  & 8  & 0.125 & 4  & 0.6735 \\
+32 & 2.43e-05 & cosine & 16 & 32 & 0.127 & 4  & 0.5980 \\
+33 & 2.73e-05 & cosine & 16 & 32 & 0.149 & 4  & 0.5891 \\
+34 & 2.80e-05 & linear & 16 & 32 & 0.136 & 8  & 0.6603 \\
+35 & 2.41e-05 & cosine & 8  & 32 & 0.148 & 8  & 0.6895 \\
+36 & 2.23e-05 & cosine & 16 & 32 & 0.146 & 4  & 0.6054 \\
+37 & 2.63e-05 & cosine\_wr & 16 & 16 & 0.120 & 4  & 0.6298 \\
+38 & 2.58e-05 & linear & 8  & 32 & 0.103 & 4  & 0.5933 \\
+39 & 2.77e-05 & linear & 8  & 32 & 0.089 & 4  & 0.5879 \\
+40 & 2.87e-05 & linear & 8  & 32 & 0.081 & 4  & 0.5851 \\
+41 & 2.52e-05 & linear & 8  & 32 & 0.085 & 4  & 0.5948 \\
+42 & 2.97e-05 & linear & 16 & 8  & 0.108 & 4  & 0.6658 \\
+43 & 2.91e-05 & cosine & 8  & 32 & 0.096 & 4  & 0.5847 \\
+44 & 2.88e-05 & cosine & 8  & 32 & 0.094 & 4  & 0.5853 \\
+
+\hline
+\end{tabular}
+}
+\end{table}
+
 \subsection{Optimization Methodology and Search Space}
 We executed 45 objective trials to minimize the validation cross-entropy loss. The optimization targeted seven critical hyperparameters that govern the QLoRA adapters and the training dynamics:
 \begin{itemize}
@@ -105,7 +176,7 @@ The HPO process revealed a strong correlation between lower batch sizes and impr
 \begin{enumerate}
     \item \textbf{Early Convergence (Trials 0--9):} Initial trials focused on a LoRA rank of 8 and 16 with varied schedulers. The best initial value was achieved in \textbf{Trial 0 (Value: 1.0179)} using a linear scheduler.
     \item \textbf{Scaling Breakthrough (Trials 11--20):} By increasing the LoRA rank to 32 and aligning the Alpha parameter to 32, we observed a significant performance jump. \textbf{Trial 11} reduced the loss to \textbf{0.6384}, suggesting that the higher rank allowed the adapters to capture more complex algorithmic patterns.
-    \item \textbf{Optimal Stability (Trials 41--45):} The final phase of optimization identified that a \textbf{Cosine Scheduler} combined with a higher learning rate ($\sim 2.9 \times 10^{-5}$) and a low batch size (4) yielded the most stable and lowest loss. 
+    \item \textbf{Optimal Stability (Trials 40--44):} The final phase of optimization identified that a \textbf{Cosine Scheduler} combined with a higher learning rate ($\sim 2.9 \times 10^{-5}$) and a low batch size (4) yielded the most stable and lowest loss. 
 \end{enumerate}
 
 
@@ -114,14 +185,14 @@ The HPO process revealed a strong correlation between lower batch sizes and impr
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{src/images/figures/hyperparameter_tuning.png}
-    \caption{Training and Validation Loss Trajectory.}
-    \label{fig:loss_curve}
+    \caption{Evaluation loss in different trial during hyperparameter tuning}
+    \label{fig:evaluation loss in different trial during hyperparameter tuning}
 \end{figure}
-The optimal parameters identified in \textbf{Trial 44} (Validation Loss: \textbf{0.5847}) were selected for the final model production. This trial demonstrated that while a higher rank is often beneficial, a rank of 8 with a high Alpha (32) and a Cosine scheduler provided the best generalization-to-efficiency ratio.
+The optimal parameters identified in \textbf{Trial 43} (Validation Loss: \textbf{0.5847}) were selected for the final model production. This trial demonstrated that while a higher rank is often beneficial, a rank of 8 with a high Alpha (32) and a Cosine scheduler provided the best generalization-to-efficiency ratio.
 
 \begin{table}[H]
 \centering
-\caption{Selected Optimal Hyperparameters (Trial 44)}
+\caption{Selected Optimal Hyperparameters (Trial 43)}
 \label{tab:final_hparams}
 \begin{tabular}{@{}ll@{}}
 \toprule
@@ -137,7 +208,7 @@ Warmup Ratio & 0.0693 \\ \bottomrule
 \end{table}
 
 \subsection{Training Stability Discussion}
-The transition from \textbf{Trial 0 (1.0179)} to \textbf{Trial 44 (0.5847)} represents a \textbf{42.5\% improvement} in the model's objective value. The convergence of the trials toward the $0.58$ mark in the final stages (Trials 41, 44, and 45) indicates that the search space successfully reached a local optimum. The use of a warmup ratio of approximately 7\% proved essential in preventing gradient explosion during the initial stages of NF4 weight adaptation.
+The transition from \textbf{Trial 0 (1.0179)} to \textbf{Trial 43 (0.5847)} represents a \textbf{42.5\% improvement} in the model's objective value. The convergence of the trials toward the $0.58$ mark in the final stages (Trials 40, 43, and 44) indicates that the search space successfully reached a local optimum. The use of a warmup ratio of approximately 7\% proved essential in preventing gradient explosion during the initial stages of NF4 weight adaptation.
 
 \section{Evaluation on Quantitative Metrics}
 Following the hyperparameter optimization phase, the performance of the final fine-tuned Llama-2-7B model was validated on a held-out test set consisting of 1,379 samples. Evaluation was conducted using a dual-metric approach: \textbf{SacreBLEU} for surface-level linguistic similarity and \textbf{CodeBLEU} for functional and structural alignment with reference solutions.
@@ -163,6 +234,13 @@ While standard BLEU measures $n$-gram overlap, it often fails to capture the log
 
 \subsection{Performance Results}
 The quantitative results for the 1,379 test samples are summarized in Table \ref{tab:test_metrics}. The model achieved a \textbf{Corpus BLEU of 10.27} and a \textbf{CodeBLEU score of 0.2363}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{src/images/figures/score_between_finetuned_and_quantize.png}
+    \caption{BLEU and CodeBLEU score of fine-tuned and quantized model}
+    \label{fig:BLEU and CodeBLEU score of fine-tuned and quantized model}
+\end{figure}
 
 \begin{table}[H]
 \centering
@@ -198,7 +276,7 @@ The breakdown of the CodeBLEU components reveals critical insights into the mode
 \end{itemize}
 
 \subsection{Conclusion on Quantitative Evaluation}
-The achievement of a **0.2363 CodeBLEU** score on a large test set of 1,379 samples indicates that the model has evolved from a general-purpose language model into a specialized Python generator. The high scores in AST and Dataflow matching specifically justify the model's readiness for deployment as a local code assistant, as these metrics correlate most strongly with the actual execution success of generated code.
+The achievement of a 0.2363 CodeBLEU score on a large test set of 1,379 samples indicates that the model has evolved from a general-purpose language model into a specialized Python generator. The high scores in AST and Dataflow matching specifically justify the model's readiness for deployment as a local code assistant, as these metrics correlate most strongly with the actual execution success of generated code.
 
 \section{Functional Evaluation: Pass@k on HumanEval}
 While quantitative metrics like CodeBLEU provide insight into structural similarity, the ultimate measure of a code generation model is its functional correctness. We evaluated the model using the \textbf{OpenAI HumanEval} benchmark, which consists of 164 hand-written Python programming problems. Each problem includes a function signature, a docstring, and a set of unit tests to verify the generated solution.
@@ -214,6 +292,13 @@ where $n$ is the total number of samples generated per problem (we utilized $n=1
 
 \subsection{Comparative Results}
 The performance of the base Llama-2-7B model was compared against our fine-tuned variant across $k$ values from 1 to 5. The results, summarized in Table \ref{tab:humaneval_results}, demonstrate a consistent and significant improvement in functional logic.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{src/images/figures/passk_between_quantize_and_fine_tune.png}
+    \caption{pass@k score of quantized and fine-tuned model}
+    \label{fig:pass@k score of quantized and fine-tuned model}
+\end{figure}
 
 \begin{table}[H]
 \centering
@@ -253,6 +338,13 @@ To provide a broader benchmark comparison, we evaluated the \textbf{CodeLlama} m
 \subsection{HumanEval Results for CodeLlama}
 
 The functional performance of CodeLlama across different values of $k$ is presented in Table \ref{tab:codellama_results}. These results reflect the probability that at least one of the generated solutions passes all unit tests for a given problem.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{src/images/figures/passk_between_finetuned_codellama.png}
+    \caption{pass@k score of fine-tuned and codellama model}
+    \label{fig:pass@k score of fine-tuned and codellama model}
+\end{figure}
 
 \begin{table}[H]
 \centering
@@ -341,6 +433,13 @@ These findings suggest that further improvements can be achieved through reinfor
 
 \section{System Performance in Deployment (Ollama)}
 The final model was converted to GGUF format and deployed via Ollama. Performance on a local NVIDIA T4 GPU showed an average inference speed of \textbf{24 tokens per second}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/images/figures/system_usage.png}
+    \caption{Resource uses by ollama during inference}
+    \label{fig:Resource uses by ollama during inference}
+\end{figure}
 
 \begin{table}[h]
 \centering
