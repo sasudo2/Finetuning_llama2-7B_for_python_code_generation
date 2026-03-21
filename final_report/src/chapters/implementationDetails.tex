@@ -191,7 +191,7 @@ The transformation process can be represented by the mapping function $f(C) \rig
 Removing these components resulted in a more compact representation of the dataset. As shown in the training logs, models trained on "clean" code converged faster because the loss function was calculated solely on functionally relevant tokens. This step effectively reduced the noise-to-signal ratio, allowing the fine-tuned adapters to capture the nuances of Python's syntax more effectively.
 
 \subsection{Train and test Split}
-To ensure a robust evaluation of the fine-tuned model, we implemented a stratified train-test split. The dataset was partitioned into an 90\% training set and a 10\% test set, ensuring that the distribution of problem types and difficulty levels was preserved across both subsets. This stratification was crucial for evaluating the model's generalization capabilities, particularly on unseen problem types that may not have been adequately represented in the training data.
+To ensure a robust evaluation of the fine-tuned model, we implemented a stratified train-test split. The dataset was partitioned into a 90\% training set and a 10\% test set, ensuring that the distribution of problem types and difficulty levels was preserved across both subsets. This stratification was crucial for evaluating the model's generalization capabilities, particularly on unseen problem types that may not have been adequately represented in the training data.
 
 \subsection{Llama-2 Chat Template and Tokenization Mechanics}
 To leverage the pre-trained conversational abilities of the Llama-2-7B-Chat model, all dataset samples were mapped to the specific Llama-2 Chat Template. This formatting is essential for the model to correctly identify the start and end of a user request versus the assistant's generation.
@@ -220,7 +220,7 @@ We utilized the \texttt{LlamaTokenizer} with a fixed \texttt{max\_length} of 512
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth]{src/images/figures/hyperparameter_tuning_flowchart.drawio..png}
+    \includegraphics[width=0.8\textwidth]{src/images/figures/hyperparameter_tuning_flowchart.drawio.png}
     \caption{Hyperparameter optimization with random search}
     \label{fig:hyperparameter optimization with random search}
 \end{figure}
@@ -428,7 +428,7 @@ In CodeBleu,we evaluated the generated code on four dimensions: \textbf{N-gram M
 In this metric we evaluate the base model and fine tuned model on the same set of 1392 test cases. The evaluation process involves generating the code for each test case and then find the Bleu and CodeBLEU scores for the generated code against the reference code.
 The results showed a significant improvement in both Bleu and CodeBLEU scores for the fine-tuned model compared to the base model. In CodeBleu,we evaluated the generated code on four dimensions: \textbf{N-gram Matching}, \textbf{Weighted N-gram Matching}, \textbf{Syntax Matching}, and \textbf{Data Flow Matching}. The fine-tuned model demonstrated a substantial increase in all four dimensions, indicating that the instruction-masked fine-tuning process effectively enhanced the model's ability to generate syntactically correct and logically coherent Python code.
 
-\subsection{Functinal Evaluation of base and fine-tuned model}
+\subsection{Functional Evaluation of base and fine-tuned model}
 To assess the effectiveness of the fine-tuning process, we conducted a functional evaluation using the HumanEval benchmark, which consists of programming problems designed to test code generation capabilities. 
 Both models were provided with identical prompts, and the generated solutions were assessed on the following criteria:
 
@@ -479,9 +479,9 @@ Overall, the integration of Ollama enables an efficient, scalable, and privacy-p
     \centering
     \includegraphics[width=0.8\textwidth]{src/images/figures/usecase.drawio.png}
     \caption{UseCase diagram}
-    \label{fig:UseCase diagram}
+    \label{fig:usecase_diagram}
 \end{figure}
-The use case diagram illustrated in Figure~\ref{fig:UseCase Diagram} represents the interaction between the user and the system components involved in the Python code generation process. It highlights the primary functionalities provided by the system and how external actors interact with them.
+The use case diagram illustrated in Figure~\ref{fig:usecase_diagram} represents the interaction between the user and the system components involved in the Python code generation process. It highlights the primary functionalities provided by the system and how external actors interact with them.
 
 The diagram consists of two main actors: the \textbf{User} and the \textbf{Ollama Engine}. The User is the primary actor who interacts with the system through various use cases, while the Ollama Engine represents the backend model responsible for generating and processing responses.
 
