@@ -6,8 +6,6 @@
     \label{fig:Implementation of the project}
 \end{figure}
 
-
-
 \section{Data Collection and Preparation}
 Fine-tuning Llama-2 7B for Python code generation requires a high-quality, domain-specific dataset containing diverse programming tasks and their corresponding solutions. We constructed a composite dataset from multiple reputable open-source sources.
 
@@ -53,7 +51,7 @@ Python Code Instructions 18k (Alpaca-style) & $\sim$18,000 pairs & Instruction p
 The foundational quality of a fine-tuned model is directly dependent on the cleanliness and relevance of the training data. For this project, we developed a specialized pipeline to transform general-purpose instruction datasets into a high-fidelity algorithmic training set by integrating automated LLM classification with manual verification.
 
 \subsection{Alpaca Dataset Refinement}
-The primary source for our instruction-following data was the \textbf{iamtarun/python\_code\_instructions\_18k\_alpaca} repository. To focus the model on logical reasoning and competitive programming (C.P.), we executed the following refinement process:
+The primary source for our instruction-following data was the \textbf{iamtarun/python\_code\_instructions\_18k\_alpaca} repository. To focus the model on logical reasoning and algorithmic programming, we executed the following refinement process:
 
 \begin{itemize}
     \item \textbf{Automated Classification:} We employed the \texttt{qwen2.5-coder:1.5b} model to evaluate the 18,000 raw rows. The model was tasked with identifying problems specifically involving algorithmic logic and competitive programming structures.
@@ -93,7 +91,7 @@ FlyTech Python          & 42,000             & 22,000                  & \textbf
 To ensure the fine-tuning process was not degraded by low-entropy or repetitive data, we implemented a custom \textbf{Complexity Filtering} layer. This programmatic filter targeted two primary noise factors: trivial, non-informative solutions and ``loop-hallucination'' patterns commonly observed in raw web-scraped datasets.
 
 \subsubsection{Length-Based Thresholding}
-Trivial code snippets, such as single-variable assignments or empty function definitions, fail to provide sufficient structural information for a 7B parameter model to capture complex logic. We applied a minimum word count threshold ($\tau_{min} = 7$) to ensure that every sample contained at least one functional block. The rationale for selecting seven tokens as the baseline is derived from the standard structure of a Python function. A minimal function definition (e.g., \texttt{def func(): return x}) typically comprises seven discrete tokens. By enforcing this limit, we ensured the model was forced to learn from logic-dense snippets rather than trivial examples that offer a weak learning signal. This strategy significantly reduced training loss by focusing gradient updates on meaningful algorithmic patterns rather than simple variable assignments.
+Trivial code snippets, such as single-variable assignments or empty function definitions, fail to provide sufficient structural information for a 7B parameter model to capture complex logic. We applied a minimum word count threshold ($\tau_{min} = 7$) to ensure that every sample contained at least one functional block. The rationale for selecting seven tokens as the baseline is derived from the standard structure of a Python function. A minimal function definition (e.g., \texttt{def func(a, b): return a + b}) typically comprises seven discrete tokens. By enforcing this limit, we ensured the model was forced to learn from logic-dense snippets rather than trivial examples that offer a weak learning signal. This strategy significantly reduced training loss by focusing gradient updates on meaningful algorithmic patterns rather than simple variable assignments.
 \subsubsection{Lexical Diversity and Repetition Analysis}
 One of the primary failure modes of Large Language Models (LLMs) is the generation of repetitive, circular code blocks. To prevent the model from inheriting these patterns during fine-tuning, we calculated a \textbf{Repetition Ratio} ($\rho$) for each candidate sample:
 \begin{equation}
@@ -129,7 +127,6 @@ The selection of the optimal threshold was determined empirically. We evaluated 
         \midrule
         Min. Word Count & $> 7$ tokens & Ensures functional complexity and presence of a return block. \\
         Max. Repetition Ratio & $< 0.4$ & Filters out circular logic and redundant boilerplate; selected via empirical testing. \\
-        Syntactic Correctness & \texttt{ast.parse} & Guarantees that all training signals are compilable and syntactically valid code. \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -150,10 +147,10 @@ To ensure the model prioritizes functional logic over natural language explanati
 \toprule
 \textbf{Stage} & \textbf{Sample Count} & \textbf{Avg. Tokens/Sample} & \textbf{Est. Logic Density} \\ 
 \midrule
-Raw Combined               & 60,000 & --  & Low \\
-Filtered (Logic Only)      & 34,000 & --  & Medium \\
-Refined (Functional/Clean) & 21,542 & --  & High \\
-\textbf{Final (Functional-Only)} & \textbf{13,914} & \textbf{164} & \textbf{Very High} \\ 
+Raw Combined               & 60,000  & Low \\
+Filtered (Logic Only)      & 34,000  & Medium \\
+Refined (Functional/Clean) & 21,542   & High \\
+\textbf{Final (Functional-Only)} & \textbf{13,914}  & \textbf{Very High} \\ 
 \bottomrule
 \end{tabular}
 \end{adjustbox}
@@ -220,7 +217,7 @@ We utilized the \texttt{LlamaTokenizer} with a fixed \texttt{max\_length} of 512
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth]{src/images/figures/hyperparameter_tuning_flowchart.drawio..png}
+    \includegraphics[width=0.8\textwidth]{src/images/figures/hyperparameter_tuning_flowchart.drawio.png}
     \caption{Hyperparameter optimization with random search}
     \label{fig:hyperparameter optimization with random search}
 \end{figure}
@@ -481,7 +478,7 @@ Overall, the integration of Ollama enables an efficient, scalable, and privacy-p
     \caption{UseCase diagram}
     \label{fig:UseCase diagram}
 \end{figure}
-The use case diagram illustrated in Figure~\ref{fig:UseCase Diagram} represents the interaction between the user and the system components involved in the Python code generation process. It highlights the primary functionalities provided by the system and how external actors interact with them.
+The use case diagram illustrated in Figure~\ref{fig:UseCase diagram} represents the interaction between the user and the system components involved in the Python code generation process. It highlights the primary functionalities provided by the system and how external actors interact with them.
 
 The diagram consists of two main actors: the \textbf{User} and the \textbf{Ollama Engine}. The User is the primary actor who interacts with the system through various use cases, while the Ollama Engine represents the backend model responsible for generating and processing responses.
 
