@@ -1,24 +1,98 @@
 \chapter{MATHEMATICAL DERIVATIONS}
-This chapter provides the detailed mathematical framework for the fine-tuning process and the optimization algorithms used in the project.
+This chapter provides a detailed mathematical framework for the fine-tuning process, the optimization algorithms, and the low-rank adaptation (LoRA) used in our project for code generation with Llama-2-7B.
 
 \section{Low-Rank Adaptation (LoRA) Derivation}
-In our project, we utilize LoRA to adapt Llama-2-7B. For a pre-trained weight matrix $W_0 \in \mathbb{R}^{d \times k}$, the update is constrained by a low-rank decomposition.
-The forward pass for a given input $x$ is defined as:
+LoRA aims to reduce the number of trainable parameters during fine-tuning by constraining the weight updates to a low-rank decomposition. For a pre-trained weight matrix $W_0 \in \mathbb{R}^{d \times k}$, the LoRA update is defined as:
 \[
-h = W_0x + \Delta Wx = W_0x + BAx
+\Delta W = BA
 \]
-Where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times k}$, with the rank $r \ll \min(d, k)$. 
-During training, $W_0$ is frozen, and only $A$ and $B$ receive gradient updates. The number of trainable parameters is reduced from $d \times k$ to $r \times (d + k)$.
+where 
+$B \in \mathbb{R}^{d \times r}$, $A \in \mathbb{R}^{r \times k}$, and $r \ll \min(d,k)$ is the rank of the adaptation.  
+
+The forward pass for an input vector $x \in \mathbb{R}^{k}$ becomes:
+\[
+h = W_0 x + \Delta W x = W_0 x + B A x
+\]
+
+\subsection{Gradient Computation}
+During backpropagation, only $A$ and $B$ are trainable. Let $\mathcal{L}$ denote the loss function. The gradients of the loss with respect to the LoRA parameters are computed using the chain rule:
+\[
+\frac{\partial \mathcal{L}}{\partial A} = B^\top \frac{\partial \mathcal{L}}{\partial h} \, x^\top
+\]
+\[
+\frac{\partial \mathcal{L}}{\partial B} = \frac{\partial \mathcal{L}}{\partial h} \, (A x)^\top
+\]
+
+This formulation avoids computing gradients for the large pre-trained weight $W_0$, significantly reducing memory usage and computational cost.
+
+\subsection{Rank-1 Decomposition Interpretation}
+The LoRA update $\Delta W$ can also be expressed as a sum of rank-1 matrices:
+\[
+\Delta W = \sum_{i=1}^{r} B_{\cdot,i} A_{i,\cdot}
+\]
+where $B_{\cdot,i}$ is the $i$-th column of $B$ and $A_{i,\cdot}$ is the $i$-th row of $A$. This demonstrates that LoRA approximates the weight update using a combination of $r$ rank-1 matrices, capturing the most significant directions of change.
+
+\subsection{Parameter Reduction}
+The number of trainable parameters is reduced from $d \times k$ to $r \times (d + k)$:
+\[
+\text{Reduction Factor} = \frac{r \times (d+k)}{d \times k} \ll 1
+\]
+which shows the efficiency gained when $r \ll \min(d,k)$.
 
 \section{Cross-Entropy Loss for Code Generation}
-The model is trained using the Categorical Cross-Entropy loss function to predict the next token in a code sequence. Given a sequence of tokens $y$, the loss $\mathcal{L}$ is:
-\[
-\mathcal{L} = -\sum_{i=1}^{V} y_i \log(\hat{y}_i)
-\]
-Where $V$ is the vocabulary size, $y_i$ is the ground truth (one-hot encoded), and $\hat{y}_i$ is the probability predicted by the Softmax layer:
+The model predicts the next token in a code sequence using Categorical Cross-Entropy. Let $y \in \{0,1\}^V$ be the one-hot encoded ground truth vector over vocabulary size $V$, and $\hat{y}$ be the predicted probability vector from the Softmax layer:
 \[
 \hat{y}_i = \frac{\exp(z_i)}{\sum_{j=1}^{V} \exp(z_j)}
 \]
+
+The Cross-Entropy loss for a single token is:
+\[
+\mathcal{L}_\text{CE} = - \sum_{i=1}^{V} y_i \log(\hat{y}_i)
+\]
+
+\subsection{Sequence-Level Loss}
+For code sequences of length $T$, the total loss becomes:
+\[
+\mathcal{L}_\text{seq} = - \sum_{t=1}^{T} \sum_{i=1}^{V} y_{t,i} \log(\hat{y}_{t,i}) 
+= - \sum_{t=1}^{T} \log P(y_t \mid y_1, \dots, y_{t-1}; \theta)
+\]
+where $\theta$ denotes the trainable parameters (here, LoRA parameters $A$ and $B$).
+
+\subsection{Gradient Simplification for Softmax + Cross-Entropy}
+A well-known simplification of the gradient of the loss with respect to the logits $z_i$ is:
+\[
+\frac{\partial \mathcal{L}_\text{CE}}{\partial z_i} = \hat{y}_i - y_i
+\]
+This avoids computing the full Jacobian of the Softmax, making backpropagation efficient.
+
+\section{Regularization and Weight Decay}
+If weight decay is applied to LoRA parameters, the total loss becomes:
+\[
+\mathcal{L}_\text{total} = \mathcal{L}_\text{seq} + \frac{\lambda}{2} \| \theta \|^2
+\]
+where $\lambda$ is the weight decay coefficient.
+
+The gradient with respect to $A$ and $B$ is adjusted accordingly:
+\[
+\frac{\partial \mathcal{L}_\text{total}}{\partial A} = \frac{\partial \mathcal{L}_\text{seq}}{\partial A} + \lambda A, \quad
+\frac{\partial \mathcal{L}_\text{total}}{\partial B} = \frac{\partial \mathcal{L}_\text{seq}}{\partial B} + \lambda B
+\]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 \chapter{PROJECT BUDGET}
