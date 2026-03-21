@@ -1,7 +1,7 @@
 \chapter{IMPLEMENTATION DETAILS}
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth]{src/images/figures/implementation.drawio.png}
+    \includegraphics[width=\textwidth]{src/images/figures/implementation.drawio.png}
     \caption{Implementation of the project}
     \label{fig:Implementation of the project}
 \end{figure}
@@ -9,7 +9,7 @@
 \section{Data Collection and Preparation}
 Fine-tuning Llama-2 7B for Python code generation requires a high-quality, domain-specific dataset containing diverse programming tasks and their corresponding solutions. We constructed a composite dataset from multiple reputable open-source sources.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.3\textwidth]{src/images/figures/data_preparation.png}
     \caption{Dataset Preparation Pipeline}
@@ -17,19 +17,6 @@ Fine-tuning Llama-2 7B for Python code generation requires a high-quality, domai
 \end{figure}
 
 \subsection{Dataset Sources}
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=\textwidth]{src/images/figures/Flytech.png}
-    \caption{Flytech datasets}
-    \label{fig:Flytech datasets}
-\end{figure}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=\textwidth]{src/images/figures/alpaca.png}
-    \caption{Alpaca datasets}
-    \label{fig:Alpaca datasets}
-\end{figure}
 
 \begin{table}[h!]
 \caption{Datasets used for fine-tuning Llama-2 7B for Python code generation.}
@@ -59,7 +46,12 @@ The primary source for our instruction-following data was the \textbf{iamtarun/p
     \item \textbf{Final Distribution:} After the removal of misclassified rows and duplicates, the final Alpaca-refined dataset consisted of \textbf{11,926 rows} of high-quality Python code paired with clear natural language descriptions.
 \end{itemize}
 
-
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{src/images/figures/Flytech.png}
+    \caption{Flytech datasets}
+    \label{fig:Flytech datasets}
+\end{figure}
 
 \subsection{FlyTech Dataset Processing}
 To supplement the algorithmic data with broader technical coding patterns, we utilized the \textbf{FlyTech} Python dataset. Given its large initial volume, a strict cleaning pipeline was necessary to ensure data integrity:
@@ -69,6 +61,13 @@ To supplement the algorithmic data with broader technical coding patterns, we ut
     \item \textbf{Quality Control:} After the initial cleaning phase reduced the pool to 22,000 samples, we performed a secondary heuristic filter to identify the most educationally dense and logically sound snippets.
     \item \textbf{Final Selection:} This process resulted in a final selection of \textbf{9,616 high-quality samples}, ensuring that only the most robust examples contributed to the fine-tuning process.
 \end{itemize}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{src/images/figures/alpaca.png}
+    \caption{Alpaca datasets}
+    \label{fig:Alpaca datasets}
+\end{figure}
 
 \subsection{Consolidated Training Set}
 By merging the refined Alpaca and FlyTech subsets, we produced a final training corpus optimized for Python code generation. This combination provides a balance between competitive programming logic and practical software engineering tasks.
@@ -160,7 +159,7 @@ Refined (Functional/Clean) & 21,542   & High \\
 We utilized Regular Expressions (Regex) to programmatically identify and remove two primary types of non-functional text:
 \begin{enumerate}
     \item \textbf{Single-Line Comments:} Identified via the pattern \texttt{\#.*?$\backslash$n}, ensuring that inline annotations are removed without disrupting the line-break structure.
-    \item \textbf{Triple-Quote Docstrings:} Both double-quote (\texttt{""""..."""}) and single-quote (\texttt{'''...'''}) docstrings were targeted using the \texttt{DOTALL} flag to capture multi-line string literal documentation.
+    \item \textbf{Triple-Quote Docstrings:} Both double-quote (\texttt{"""..."""}) and single-quote (\texttt{'''...'''}) docstrings were targeted using the \texttt{DOTALL} flag to capture multi-line string literal documentation.
 \end{enumerate}
 
 
@@ -203,23 +202,22 @@ The structure utilized follows the schema:
 
 We utilized the \texttt{LlamaTokenizer} with a fixed \texttt{max\_length} of 512 tokens. To handle variable-length inputs within a batch, we implemented right-side padding (\texttt{padding\_side="right"}). Crucially, the padding token was mapped to the \texttt{eos\_token} to ensure the model learns a clear termination signal for code blocks, preventing the common "infinite loop" generation failure mode.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{src/images/figures/final_datasets.png}
+    \includegraphics[width=0.8\textwidth]{src/images/figures/final_datasets.png}
     \caption{final datasets}
     \label{fig:final datasets}
 \end{figure}
 
 \section{Hyperparameter Optimization}
 
-\begin{figure}[ht]
+The fine-tuning of Large Language Models (LLMs) is highly sensitive to the configuration of adapters and optimization schedules. To move beyond sub-optimal manual tuning, we implemented an automated Hyperparameter Optimization (HPO) pipeline using \textbf{Optuna} integrated with the \textbf{Hugging Face Trainer}.
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{src/images/figures/hyperparameter_tuning_flowchart.drawio.png}
+    \includegraphics[width=0.7\textwidth]{src/images/figures/hyperparameter_tuning_flowchart.drawio.png}
     \caption{Hyperparameter optimization with random search}
     \label{fig:hyperparameter optimization with random search}
 \end{figure}
-
-The fine-tuning of Large Language Models (LLMs) is highly sensitive to the configuration of adapters and optimization schedules. To move beyond sub-optimal manual tuning, we implemented an automated Hyperparameter Optimization (HPO) pipeline using \textbf{Optuna} integrated with the \textbf{Hugging Face Trainer}.
 
 \subsection{Bayesian Optimization via TPE}
 Rather than utilizing a brute-force Grid Search or an uninformed Random Search, we employed the \textbf{Tree-structured Parzen Estimator (TPE)}. This Bayesian approach treats the optimization as a sequential process:
@@ -265,7 +263,7 @@ The HPO process concluded after 45 trials. The objective function was the minimi
 
 \begin{table}[h]
 \centering
-\caption{Best Hyperparameter Configuration (Trial 43)}
+\caption{Best Hyperparameter Configuration (Trial 44)}
 \label{tab:best_params}
 \begin{tabular}{l|l|l}
 \hline
