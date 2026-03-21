@@ -1,6 +1,6 @@
 \chapter{SYSTEM ARCHITECTURE AND METHODOLOGY}
 
-\section{SYSTEM ARCHITECTURE of LLaMA-2}
+\section{System Architecture of LLaMA-2}
 LLaMA-2 (Large Language Model Meta AI) is a family of large-scale transformer-based
 language models developed by Meta. It is designed to generate human-like text by
 learning statistical patterns from large corpora of textual data. LLaMA-2 models are
@@ -738,15 +738,11 @@ To ensure the model specialized in competitive programming rather than generic b
 To leverage the conversational strengths of Llama-2, each sample was mapped to a structured template. This ensures that during inference, the model recognizes specific delimiters as signals to transition from understanding the problem to generating the solution. The transformation follows the Llama-2 specific schema:
 
 \begin{verbatim}
-<s>[INST] <<SYS>> 
-{System_Prompt} 
-<</SYS>> 
-
+<s>[INST] 
 {User_Instruction} [/INST] 
 {Python_Code_Solution} </s>
 \end{verbatim}
 
-The \texttt{System\_Prompt} consistently defined the model as a "highly proficient Python developer," while the \texttt{[INST]} tags isolated the user's requirements from the expected response.
 
 \subsection{Tokenization and Instruction Masking}
 The Llama-2 BPE (Byte-Pair Encoding) tokenizer was used to convert text into discrete numerical identifiers with a maximum sequence length of 4096 tokens. 
@@ -759,7 +755,7 @@ A critical implementation detail in our methodology is \textbf{Instruction Maski
 After shuffling and de-duplication, the refined dataset was divided into two distinct subsets to ensure robust training and unbiased evaluation:
 \begin{itemize}
     \item \textbf{Training Set (90\%):} Used for the primary gradient updates via the QLoRA adapters where 5\% of the training data was reserved for validation.
-    \item \textbf{Test Set (10\%):} Reserved for post-training evaluation using the HumanEval benchmark to measure the model's generalization to unseen problems.
+    \item \textbf{Test Set (10\%):} Reserved for post-training evaluation using the BLEU and CodeBLEU benchmark to measure the model's generalization to unseen problems.
 \end{itemize}
 
 
