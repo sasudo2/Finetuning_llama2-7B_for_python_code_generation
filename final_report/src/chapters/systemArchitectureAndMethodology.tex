@@ -494,7 +494,7 @@ P(x_t = v) = \frac{\exp(z_v)}{\sum_{v' \in V} \exp(z_{v'})}
 where $z_v$ is the logit corresponding to token $v$ in the vocabulary. This softmax layer allows the model to generate a probability distribution over all possible next tokens, enabling it to perform autoregressive generation by sampling or selecting the token with the highest probability at each step.
 
 
-\subsection{Sampling Stragegies}
+\subsection{Sampling Strategies}
 During inference, LLaMA-2 generates text by sampling from the probability distribution produced by the softmax output layer. Various sampling strategies can be employed to control the diversity and coherence of the generated text. Common strategies include:
 
 \subsubsection{Greedy Sampling}
@@ -1025,7 +1025,7 @@ p_{n}=
 
 
 \subsection{CodeBLEU}
-CodeBLEU extends BLEU for code generation by incorporating syntax, data-flow, and semantic correctness \cite{Brown2020}. 
+CodeBLEU extends BLEU for code generation by incorporating syntax, data-flow, and semantic correctness \cite{Ren2020CodeBLEU}. 
 It is defined as shown in Equation~\eqref{eq:codebleu}:
 
 \begin{equation}\label{eq:codebleu}
@@ -1060,7 +1060,7 @@ Semantic correctness is assessed by comparing the semantic tokens (e.g., variabl
 \subsection{Functional Evaluation}
 We test our model on human-eval questions, which consist of a problem statement, a reference solution, and a set of unit tests. The generated code is executed against these unit tests to verify its correctness.
 We evaluate for pass@k, which measures the percentage of problems for which at least one of the top-k generated solutions passes all unit tests. This metric directly assesses the functional correctness of the generated code.
-The human-eval score was found using the folllowing formula:
+The human-eval score was found using the following formula:
 \begin{equation}
 \text{pass@k} = 1 - \left(1 - \frac{c}{n}\right)^k
 \end{equation}
