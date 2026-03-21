@@ -71,7 +71,7 @@ Dataflow Match & 0.3749 & 0.3670 & -0.0079 \\ \bottomrule
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{src/images/figures/score_between_quantize_and_unquantize.png}
-    \caption{BLEU and CodeBLEU score of quantized and unquantized model}
+    \caption{BLEU And CodeBLEU Score Of Quantized And Unquantized Model}
     \label{fig:BLEU and CodeBLEU score of quantized and unquantized model}
 \end{figure}
 
@@ -186,7 +186,7 @@ The HPO process revealed a strong correlation between lower batch sizes and impr
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{src/images/figures/hyperparameter_tuning.png}
-    \caption{Evaluation loss in different trial during hyperparameter tuning}
+    \caption{Evaluation Loss In Different Trial During Hyperparameter Tuning}
     \label{fig:evaluation loss in different trial during hyperparameter tuning}
 \end{figure}
 The optimal parameters identified in \textbf{Trial 43} (Validation Loss: \textbf{0.5847}) were selected for the final model production. This trial demonstrated that while a higher rank is often beneficial, a rank of 8 with a high Alpha (32) and a Cosine scheduler provided the best generalization-to-efficiency ratio.
@@ -212,7 +212,7 @@ Warmup Ratio & 0.0693 \\ \bottomrule
 The transition from \textbf{Trial 0 (1.0179)} to \textbf{Trial 43 (0.5847)} represents a \textbf{42.5\% improvement} in the model's objective value. The convergence of the trials toward the $0.58$ mark in the final stages (Trials 40, 43, and 44) indicates that the search space successfully reached a local optimum. The use of a warmup ratio of approximately 7\% proved essential in preventing gradient explosion during the initial stages of NF4 weight adaptation.
 
 \section{Evaluation on Quantitative Metrics}
-Following the hyperparameter optimization phase, the performance of the final fine-tuned Llama-2-7B model was validated on a held-out test set consisting of 1,379 samples. Evaluation was conducted using a dual-metric approach: \textbf{SacreBLEU} for surface-level linguistic similarity and \textbf{CodeBLEU} for functional and structural alignment with reference solutions.
+Following the hyperparameter optimization phase, the performance of the final fine-tuned Llama-2-7B model was validated on a held-out test set consisting of 1,392 samples. Evaluation was conducted using a dual-metric approach: \textbf{SacreBLEU} for surface-level linguistic similarity and \textbf{CodeBLEU} for functional and structural alignment with reference solutions.
 
 \subsection{Limitations of Evaluation Metrics}
 
@@ -239,7 +239,7 @@ The quantitative results for the 1,392 test samples are summarized in Table \ref
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{src/images/figures/score_between_finetuned_and_quantize.png}
-    \caption{BLEU and CodeBLEU score of fine-tuned and quantized model}
+    \caption{BLEU And CodeBLEU Score Of Fine-Tuned And Quantized Model}
     \label{fig:BLEU and CodeBLEU score of fine-tuned and quantized model}
 \end{figure}
 
@@ -297,7 +297,7 @@ The performance of the base Llama-2-7B model was compared against our fine-tuned
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{src/images/figures/passk_between_quantize_and_fine_tune.png}
-    \caption{pass@k score of quantized and fine-tuned model}
+    \caption{Pass@k Score Of Quantized And Fine-Tuned Model}
     \label{fig:pass@k score of quantized and fine-tuned model}
 \end{figure}
 
@@ -343,7 +343,7 @@ The functional performance of CodeLlama across different values of $k$ is presen
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{src/images/figures/passk_between_finetuned_codellama.png}
-    \caption{pass@k score of fine-tuned and codellama model}
+    \caption{Pass@k Score Of Fine-Tuned And CodeLlama Model}
     \label{fig:pass@k score of fine-tuned and codellama model}
 \end{figure}
 
@@ -486,12 +486,7 @@ These observations suggest that the model could benefit from:
 \section{System Performance in Deployment (Ollama)}
 The final model was converted to GGUF format and deployed via Ollama. Performance on a local NVIDIA T4 GPU showed an average inference speed of \textbf{24 tokens per second}.
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/system_usage.png}
-    \caption{Resource uses by ollama during inference}
-    \label{fig:Resource uses by ollama during inference}
-\end{figure}
+
 
 \begin{table}[h]
 \centering
@@ -507,7 +502,12 @@ Peak VRAM Usage & 5.1 GB \\ \bottomrule
 \end{table}
 This demonstrates that our fine-tuned 7B model is highly viable for local, private software development environments.
 
-
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{src/images/figures/system_usage.png}
+    \caption{Resource Usage By Ollama During Inference}
+    \label{fig:Resource usage by ollama during inference}
+\end{figure}
 
 \section{Summary}
 The results confirm that combining QLoRA with high-quality, filtered datasets allows a 7B parameter model to achieve competitive coding capabilities that previously required much larger models. The local deployment via Ollama ensures this performance is accessible with minimal latency and maximum data privacy.
