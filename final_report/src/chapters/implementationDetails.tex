@@ -1,8 +1,8 @@
 \chapter{IMPLEMENTATION DETAILS}
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/implementation.drawio.png}
-    \caption{Methodology}
+    \includegraphics[width=0.8\textwidth]{src/images/figures/implementation.drawio.png}
+    \caption{Implementation of the project}
     \label{fig:Implementation of the project}
 \end{figure}
 
@@ -218,6 +218,13 @@ We utilized the \texttt{LlamaTokenizer} with a fixed \texttt{max\_length} of 512
 
 \section{Hyperparameter Optimization}
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{src/images/figures/hyperparameter_tuning_flowchart.drawio..png}
+    \caption{Hyperparameter optimization with random search}
+    \label{fig:hyperparameter optimization with random search}
+\end{figure}
+
 The fine-tuning of Large Language Models (LLMs) is highly sensitive to the configuration of adapters and optimization schedules. To move beyond sub-optimal manual tuning, we implemented an automated Hyperparameter Optimization (HPO) pipeline using \textbf{Optuna} integrated with the \textbf{Hugging Face Trainer}.
 
 \subsection{Bayesian Optimization via TPE}
@@ -351,7 +358,7 @@ LoRA Target Modules & q\_proj, k\_proj, v\_proj, o\_proj, gate\_proj, up\_proj, 
 Loss Strategy & Instruction Masking (Labels = -100) \\
 Evaluation Strategy & Step-based evaluation every 50 steps \\
 Model Logging & Weights \& Biases \\
-Model Repository & Hugging Face Hub (Private) \\
+Model Repository & Hugging Face Hub\\
 \hline
 \end{tabular}
 \caption{Final Fine-Tuning Hyperparameters and Training Configuration}
