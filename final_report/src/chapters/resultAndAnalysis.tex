@@ -406,50 +406,86 @@ The observed errors can be grouped into the following categories:
     \item \textbf{Off-by-One Errors:} Common in indexing tasks, especially in array traversal and slicing operations.
 \end{enumerate}
 
+\subsubsection{Example Success Case}
 
+\textbf{Problem:}
+Create a function \texttt{from typing import List\n\n\ndef filter\_by\_substring(strings: List[str], substring: str) -> List[str]:}
+that filter an input list of strings only for ones that contain given substring.
+
+\textbf{Generated Output:}
+\begin{verbatim}
+def filter_by_substring(strings: List[str], substring: str)
+    -> List[str]:
+    return [s for s in strings if substring in s]
+\end{verbatim}
+
+\subsubsection{Insights from Success Case}
+
+The analysis of this example demonstrates that the fine-tuned model exhibits:
+
+\begin{itemize}
+\item \textbf{Correct syntactic and structural Python code generation: }the function filter\_by\_substring is valid Python and can be executed without errors.
+\item \textbf{Accurate logical implementation: }the function filter\_by\_substring is valid Python and can be executed without errors.
+\item \textbf{Concise and readable code: }the list comprehension is an efficient and Pythonic way to express the desired functionality.
+\item \textbf{Robustness for typical inputs: }it handles empty strings, empty lists, and strings with special characters appropriately.
+\end{itemize}
+
+These observations suggest that the model:
+
+\begin{itemize}
+\item \textbf{Effectively generalizes from training examples: }the model can translate a natural language requirement into working Python code.
+\item \textbf{Produces memory-efficient implementations: }using list comprehensions avoids unnecessary loops or temporary variables.
+\item \textbf{Requires minimal human intervention: }the generated code usually needs little to no modification for standard use cases.
+\end{itemize}
+
+Optional improvements for future fine-tuning:
+
+\begin{itemize}
+\item Incorporating more edge cases, such as very large input lists or Unicode characters, to ensure performance and correctness in all scenarios.
+\item Adding optional parameters (e.g., case-insensitive filtering) to enhance utility without compromising simplicity.
+\end{itemize}
 
 
 \subsubsection{Example Failure Case}
 
 \textbf{Problem:}
-\begin{verbatim}Create a function def separate_paren_groups(paren_string: str)
-     -> List[str]: that takes a single string as input. This string contains 
-     multiple groups of nested parentheses. Your goal is to identify each 
-     independent, balanced group, separate them into individual strings, 
-     and return them as a list.
-\end{verbatim}
+Create a function \texttt{def separate\_paren\_groups(paren\_string: str) -> List[str]:} 
+that takes a single string as input. This string contains multiple groups of nested 
+parentheses. Your goal is to identify each independent, balanced group, separate them 
+into individual strings, and return them as a list.
 
 
 \textbf{Generated Output:}
 \begin{verbatim}
-res = []
-    curr = ''
-    prev = ''
-    for char in paren_string:
-        if char == '(':
-            curr += char
-            if prev == '(' and curr == '(' :
-                res.append(curr)
-                curr = ''
-                prev = ''
+def separate\_paren\_groups(paren\_string: str) -> List[str]:
+    res = []
+        curr = ''
+        prev = ''
+        for char in paren_string:
+            if char == '(':
+                curr += char
+                if prev == '(' and curr == '(' :
+                    res.append(curr)
+                    curr = ''
+                    prev = ''
+                else:
+                    prev = curr
+                    curr = char
+            elif char == ')':
+                curr += char
+                if prev == '(' and curr == '(' :
+                    res.append(curr)
+                    curr = ''
+                    prev = ''
+                else:
+                    res.append(prev)
+                    prev = curr
+                    curr = char
             else:
-                prev = curr
-                curr = char
-        elif char == ')':
-            curr += char
-            if prev == '(' and curr == '(' :
-                res.append(curr)
-                curr = ''
-                prev = ''
-            else:
-                res.append(prev)
-                prev = curr
-                curr = char
-        else:
-            curr += char
-    if prev != '':
-        res.append(prev)
-    return res
+                curr += char
+        if prev != '':
+            res.append(prev)
+        return res
 \end{verbatim}
 
 \textbf{Issue:} The generated code correctly separates balanced parentheses into individual groups and produces syntactically valid Python code. However, it assumes that the input string is well-formed and does not perform validation for malformed or unexpected characters. While the logic is straightforward and effective for typical inputs, the implementation could be further optimized for extremely long strings and edge-case handling.

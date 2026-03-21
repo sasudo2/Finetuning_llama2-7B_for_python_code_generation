@@ -18,6 +18,18 @@ Finally, hyperparameter optimization was conducted under constrained computation
 
 Several directions can be pursued to further enhance the system and extend its capabilities.
 
+\subsection{Reinforcement Learning Integration}
+
+While the current approach relies on supervised fine-tuning using curated instruction-response pairs, further improvements can be achieved through the integration of Reinforcement Learning (RL), particularly Reinforcement Learning from Human Feedback (RLHF). RL enables the model to optimize its outputs based on feedback signals rather than solely relying on static training data.
+
+In the context of Python code generation, RL can be used to guide the model toward generating functionally correct, efficient, and logically sound solutions. A reward function can be designed based on multiple criteria such as execution correctness (e.g., passing test cases), code efficiency, and adherence to best coding practices. This allows the model to iteratively improve its responses by maximizing the expected reward.
+
+One potential approach involves using unit test results from benchmark datasets such as HumanEval as a reward signal. Code that successfully passes more test cases receives higher rewards, encouraging the model to generate correct and robust solutions. Additionally, human feedback can be incorporated to evaluate code readability, maintainability, and optimization quality.
+
+Integrating RL with the existing fine-tuning pipeline would involve an additional training phase after supervised learning, where the model interacts with an evaluation environment and updates its parameters based on reward signals. This hybrid approach combines the strengths of supervised learning and reinforcement learning, leading to improved generalization and performance on complex tasks.
+
+Overall, reinforcement learning presents a promising direction for enhancing the reasoning capabilities and robustness of code generation models, especially in handling edge cases and generating optimized solutions.
+
 \subsection{Scaling Model Capacity}
 
 Future work may explore fine-tuning larger models (e.g., 13B or 70B variants) or adopting mixture-of-experts architectures to improve reasoning depth and contextual understanding. Investigating scaling laws could help determine optimal trade-offs between model size, dataset size, and computational resources.
