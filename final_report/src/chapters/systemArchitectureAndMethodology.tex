@@ -264,6 +264,13 @@ The complete input sequence $\mathbf{X}$ is constructed by concatenating these c
 \subsection{Tokenizer and Vocabulary}
 LLaMA-2 utilizes a tokenizer based on Byte Pair Encoding (BPE), implemented via the SentencePiece library. This is the same tokenizer configuration used in LLaMA-1. The tokenizer is designed to handle numerical values by splitting them into individual digits and decomposing unknown UTF-8 characters into byte-level representations to ensure full coverage. The resulting vocabulary consists of 32,000 unique tokens.
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{src/images/figures/Tokenization.png}
+    \caption{Tokenization Process}
+    \label{fig:First_Step}
+\end{figure}
+
 \subsubsection{Byte Pair Encoding (BPE) Mechanism}
 To illustrate the BPE algorithm, consider a simplified corpus containing the words: \textit{low}, \textit{lower}, \textit{newest}, and \textit{widest}. The algorithm iteratively merges the most frequent adjacent pairs of characters or subwords to form new tokens.
 
@@ -291,12 +298,7 @@ The step-by-step merging process for this corpus is detailed in Table \ref{tab:b
 After several iterations, frequently occurring subword units such as \textit{lo}, \textit{we}, and \textit{est} are merged. This results in a subword vocabulary that can efficiently represent all words in the corpus, including rare or unseen words, by breaking them down into known sub-components. This approach significantly reduces the "Out-of-Vocabulary" (OOV) problem common in natural language processing.
 
 % --- FIGURE 2: FIRST STEP OF NLP IN TRANSFORMER ---
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.8\textwidth]{src/images/figures/Tokenization.png}
-    \caption{First Step of NLP in Transformer}
-    \label{fig:First_Step}
-\end{figure}
+
 
 
 \subsection{Embedding Layer}
@@ -863,12 +865,7 @@ Let $\mathbf{W} \in \mathbb{R}^{d \times k}$ represent the pre-trained weight ma
 In this expression, $Q(\cdot)$ denotes the quantization function that maps high-precision (32-bit or 16-bit) weights into a 4-bit integer space. This process reduces the storage requirements for the backbone weights by approximately 8 times, allowing the model to remain resident in memory during the fine-tuning of the adapter layers.
 
 \subsection{4-bit NormalFloat (NF4) and Memory Optimization}
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=\textwidth]{src/images/figures/double quantization.png}
-    \caption{Double Quantization}
-    \label{fig:Double Quantization}
-\end{figure}
+
 To achieve the goal of fitting the Llama-2-7b model into approximately 5GB of VRAM, we move beyond standard linear quantization to \textbf{4-bit NormalFloat (NF4)} and \textbf{Double Quantization}.
 
 \subsubsection{4-bit NormalFloat (NF4) Data Type}
@@ -880,6 +877,12 @@ The weights of pre-trained LLMs typically follow a zero-centered normal distribu
 where $Q_z(\cdot)$ is the cumulative distribution function (CDF) of the standard normal distribution. This ensures that the precision is highest where the weight density is greatest (near zero), significantly reducing the quantization error compared to standard 4-bit integers or floats.
 
 \subsubsection{Double Quantization}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{src/images/figures/double quantization.png}
+    \caption{Double Quantization}
+    \label{fig:Double Quantization}
+\end{figure}
 While NF4 reduces the weight size, the \textit{quantization constants} (the scaling factors used for each block of weights) still consume significant VRAM. In a standard setup, a block size of 64 requires a 32-bit constant for every 64 weights, adding roughly 0.5 bits per parameter.\textbf{Double Quantization} treats these 32-bit constants as inputs to a \textit{second} layer of quantization. These constants are quantized into 8-bit floats ($FP8$) with a secondary block size of 256. The memory savings are calculated using equation \eqref{eq:memory_savings}
 \begin{equation}
     \label{eq:memory_savings}
