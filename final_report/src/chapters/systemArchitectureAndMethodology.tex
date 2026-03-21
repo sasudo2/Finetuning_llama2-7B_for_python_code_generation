@@ -280,7 +280,7 @@ The step-by-step merging process for this corpus is detailed in Table \ref{tab:b
 
 \begin{table}[htbp]
     \centering
-    \caption{Step-by-step BPE token merges}
+    \caption{Step-by-Step BPE Token Merges}
     \label{tab:bpe_example}
     \begin{tabular}{ccl}
         \toprule
@@ -629,7 +629,7 @@ The model supports an effective context window of \textbf{128,000 tokens}. This 
 \subsection{SwiGLU Activation and Gated Logic}
 The Feed-Forward Network (FFN) layers utilize the \textbf{SwiGLU} activation function. This gated linear unit allows the model to learn more complex, conditional representations of code syntax compared to standard ReLU:
 \begin{equation}
-\text{SwiGLU}(\mathbf{x}) = \text{SiLU}(\mathbf{x} \mathbf{W}) \otimes (\mathbf{x} \mathbf{V})
+\text{SwiGLU}(\mathbf{x}) = \text{SiLU}(\mathbf{x} \mathbf{W}) \odot (\mathbf{x} \mathbf{V})
 \end{equation}
 This mathematical flexibility is vital for the model to distinguish between similar-looking code snippets that belong to different functional domains (e.g., distinguishing Competitive Programming from Web Development).
 
@@ -845,7 +845,7 @@ Quantized Low-Rank Adaptation (QLoRA) is a parameter-efficient fine-tuning (PEFT
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\textwidth]{src/images/figures/llama_with_qlora.png}
-    \caption{Llama model with QLoRA}
+    \caption{Llama Model with QLoRA}
     \label{fig:Llama_with_QLoRA}
 \end{figure}
 
@@ -881,8 +881,11 @@ where $Q_z(\cdot)$ is the cumulative distribution function (CDF) of the standard
 \end{figure}
 While NF4 reduces the weight size, the \textit{quantization constants} (the scaling factors used for each block of weights) still consume significant VRAM. In a standard setup, a block size of 64 requires a 32-bit constant for every 64 weights, adding roughly 0.5 bits per parameter.\textbf{Double Quantization} treats these 32-bit constants as inputs to a \textit{second} layer of quantization. These constants are quantized into 8-bit floats ($FP8$) with a secondary block size of 256. The memory savings are calculated using equation \eqref{eq:memory_savings}
 \begin{equation}
-    \label{eq:memory_savings}
-    \text{Memory Savings} = \underbrace{\frac{32}{64}}{\text{Single Quant}} - \underbrace{\left( \frac{8}{64} + \frac{32}{64 \cdot 256} \right)}{\text{Double Quant}} \approx 0.37 \text{ bits per parameter}
+\begin{split}
+\label{eq:memory_savings}
+\text{Memory Savings} &= \underbrace{\frac{32}{64}}_{\text{Single Quant}} - \underbrace{\left( \frac{8}{64} + \frac{32}{64 \cdot 256} \right)}_{\text{Double Quant}} \\
+&\approx 0.37 \text{ bits per parameter}
+\end{split}
 \end{equation}
 By implementing DQ, the overhead of quantization constants is reduced from 0.5 bits/set to approximately 0.127 bits/set, allowing the total memory footprint of the Llama-2-7b model to drop to $\sim$4.8GB, well within the limits of consumer-grade hardware like the NVIDIA T4 or L4.
 
@@ -930,7 +933,7 @@ Fine-tuning is the process of adapting a pre-trained language model (PLM) to a s
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{src/images/figures/flowdiagram.png}
-    \caption{Flow diagram of the fine-tuning process}
+    \caption{Flow Diagram of the Fine-Tuning Process}
     \label{fig:Fine-tuning_flow}
 \end{figure}
 

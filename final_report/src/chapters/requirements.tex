@@ -9,61 +9,62 @@ Due to the computational demands of the Llama-2-7B architecture, a hybrid cloud 
         \hline
         \textbf{Task} & \textbf{Platform} & \textbf{Hardware Resources} \\ \hline
         Data Preparation & Kaggle / Colab & CPU / T4 GPU (16GB VRAM) \\ \hline
-        HPO (Optuna) & Kaggle CLI & Dual T4 GPUs / P100 \\ \hline
+        HPO (Optuna) & Kaggle & Dual T4 GPUs / P100 \\ \hline
         Final Fine-tuning & Kaggle & Dual T4 GPUs \\ \hline
         Evaluation & Kaggle & Dual T4 GPUs / P100 \\ \hline
+        Inference & Local (Ollama) & Consumer GPU (RTX 3060 / 4060) \\ \hline
     \end{tabular}
 \end{table}
 
 \section{Software Requirements}
 The implementation relies on a specialized ecosystem of Python libraries designed for memory-efficient training and standardized benchmarking.
 
-\subsection{Programming Language:}
+\subsection{Programming Language}
 \begin{itemize}
-    \item \textbf{Python 3.8+} is the primary programming language, chosen for its extensive support in machine learning and data science libraries.
+    \item \textbf{Python 3.8+:} is the primary programming language, chosen for its extensive support in machine learning and data science libraries.
 \end{itemize}
 
-\subsection{Frameworks and Libraries:}
+\subsection{Frameworks and Libraries}
 \begin{itemize}
     \item \textbf{Numpy \& Pandas:} For efficient data manipulation and preprocessing, used to handle prompts, predictions, and evaluation metrics.
-    \item \textbf{BitsAndBytes:} Provides 4-bit Quantization (NF4) and Double Quantization, enabling the model to fit in limited GPU memory. Used for memory-efficient loading of LLaMA-2-7B with LoRA adapters.
+    \item \textbf{BitsAndBytesd:} Provides 4-bit Quantization (NF4) and Double Quantization, enabling the model to fit in limited GPU memory. Used for memory-efficient loading of LLaMA-2-7B with LoRA adapters.
     \item \textbf{Transformers \& TRL:} Hugging Face libraries for loading, tokenizing, and generating code using pre-trained language models. The \texttt{Trainer} API is used to manage fine-tuning loops.
     \item \textbf{Optuna:} Hyperparameter optimization framework using TPE (Tree-structured Parzen Estimator) to automatically search for optimal learning rate, LoRA alpha, dropout, and other tuning parameters.
-    \item \textbf{peft:} Implements Parameter-Efficient Fine-Tuning techniques like LoRA adapters, reducing trainable parameters while allowing effective adaptation of large language models.
-    \item \textbf{datasets:} Provides easy access to standard datasets such as \texttt{human\_eval}, enabling straightforward integration with PyTorch for evaluation of model performance.
+    \item \textbf{Peft:} Implements Parameter-Efficient Fine-Tuning techniques like LoRA adapters, reducing trainable parameters while allowing effective adaptation of large language models.
+    \item \textbf{Datasets:} Provides easy access to standard datasets such as \texttt{human\_eval}, enabling straightforward integration with PyTorch for evaluation of model performance.
     \item \textbf{PyTorch:} Deep learning framework used for model training, GPU acceleration, automatic differentiation, and managing tensor operations during fine-tuning and evaluation.
-    \item \textbf{human\_eval:} Benchmark dataset for evaluating code generation models on functional correctness. Used to compute pass@k metrics in this project.
-    \item \textbf{tqdm:} Provides progress bars for loops, used to visually track dataset iteration and code generation evaluation progress.
-    \item \textbf{matplotlib:} Python plotting library used to visualize training metrics, validation loss, and evaluation results for the fine-tuned model.
-    \item \textbf{codebleu:} Metric to evaluate code generation quality considering syntax, data-flow, and n-gram similarity. Used to assess functional and structural correctness of generated code.
-    \item \textbf{sacrebleu:} Standardized BLEU score computation used to evaluate code similarity and translation quality for generated solutions.
+    \item \textbf{Human\_eval:} Benchmark dataset for evaluating code generation models on functional correctness. Used to compute pass@k metrics in this project.
+    \item \textbf{TQDM:} Provides progress bars for loops, used to visually track dataset iteration and code generation evaluation progress.
+    \item \textbf{Matplotlib:} Python plotting library used to visualize training metrics, validation loss, and evaluation results for the fine-tuned model.
+    \item \textbf{Codebleu:} Metric to evaluate code generation quality considering syntax, data-flow, and n-gram similarity. Used to assess functional and structural correctness of generated code.
+    \item \textbf{Sacrebleu:} Standardized BLEU score computation used to evaluate code similarity and translation quality for generated solutions.
 \end{itemize}
 
-\subsection{Development Environment:}
+\subsection{Development Environment}
 \begin{itemize}
     \item \textbf{Hugging Face Hub:}
     A centralized platform for sharing and accessing pre-trained models and datasets.
-    \item \textbf{Google Collab:}
+    \item \textbf{Google Colab:}
     Provides access to high-performance GPUs for fine-tuning and evaluation.
-    \item \textbf{Kaggle CLI:}
+    \item \textbf{Kaggle:}
     Used for data preparation and hyperparameter optimization, leveraging Kaggle's GPU resources.
     \item \textbf{Weights \& Biases (W\&B):} 
     Used for real-time telemetry, monitoring validation loss curves, and logging hardware consumption across all 45 HPO trials.
-    \item \textbf{Git \& Github:}
+    \item \textbf{Git \& GitHub:}
     Version control and collaborative development platform for code management and documentation.
-    \item \textbf{LaTeX (Overleaf):}
+    \item \textbf{LaTeX:}
     Used for writing the final report, ensuring professional formatting and presentation of results.
 \end{itemize}
 
-\subsection{Data Collection:}
+\subsection{Data Collection}
 \begin{itemize}
-    \item \textbf{Hugging Face Datasets:}
+    \item \textbf{Hugging Face Datasets}
     A library for accessing and processing a wide variety of datasets, including those relevant to code generation tasks.
 \end{itemize}
 
 
 \section{Feasibility Analysis}
-This project is primarily targeted at fine-tuning large language models for Python code generation using Parameter Efficient Fine-Tuning (PEFT) with QLoRA. The feasibility of this project is analyzed from the following perspectives:
+This project is primarily targeted at fine-tuning large language models for Python code generation using Parameter Efficient Fine-Tuning (PEFT) with QLoRA. The feasibility of this project is analyzed from the following perspectives
 
 \subsection{Schedule Feasibility}
 The project is scheduled into three phases including data collection,model-fine tuning, and evaluation.With the completion of evaluation before the final stage the project successfully well-aligned with the academic calendar.
