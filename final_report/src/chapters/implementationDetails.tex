@@ -13,7 +13,7 @@ Fine-tuning Llama-2 7B for Python code generation requires a high-quality, domai
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/data_preparation.png}
+    \includegraphics[width=0.3\textwidth]{src/images/figures/data_preparation.png}
     \caption{Dataset Preparation Pipeline}
     \label{fig:First_Step}
 \end{figure}
@@ -211,7 +211,7 @@ We utilized the \texttt{LlamaTokenizer} with a fixed \texttt{max\_length} of 512
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/final_datasets.png}
+    \includegraphics[width=\textwidth]{src/images/figures/final_datasets.png}
     \caption{final datasets}
     \label{fig:final datasets}
 \end{figure}
@@ -327,6 +327,7 @@ The final model configuration used for fine-tuning the LLaMA-2-7B-Chat model is 
 
 \begin{table}[h]
 \centering
+\caption{Final Fine-Tuning Hyperparameters and Training Configuration}
 \begin{tabular}{ll}
 \hline
 \textbf{Feature} & \textbf{Implementation Detail} \\
@@ -354,7 +355,7 @@ Model Logging & Weights \& Biases \\
 Model Repository & Hugging Face Hub (Private) \\
 \hline
 \end{tabular}
-\caption{Final Fine-Tuning Hyperparameters and Training Configuration}
+
 \label{tab:final_config}
 \end{table}
 
@@ -368,8 +369,8 @@ To optimize memory usage and computational efficiency, the model leveraged 4-bit
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.7\textwidth]{src/images/figures/gpu_usage_finetuning.png}
-    \caption{GPU usage during the fine-tuning process, showing utilization trends across the dual T4 GPUs. The figure illustrates that the memory and compute were efficiently utilized while training the model.}
+    \includegraphics[width=\textwidth]{src/images/figures/gpu_usage_finetuning.png}
+    \caption{GPU usage during the fine-tuning process, showing utilization trends across the dual T4 GPUs.}
     \label{fig:gpu_usage_finetuning}
 \end{figure}
 
@@ -461,15 +462,15 @@ From an implementation perspective, local inference offers several advantages. I
 Overall, the integration of Ollama enables an efficient, scalable, and privacy-preserving deployment of the fine-tuned model, making the system suitable for real-world applications on standard consumer hardware.
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/ollama.png}
-    \caption{Scaled Dot-Product Attention Mechanism}
-    \label{fig:scaled_attention_dot_product}
+    \includegraphics[width=0.8\textwidth]{src/images/figures/ollama.png}
+    \caption{Ollama Inference}
+    \label{fig:ollama_inference}
 \end{figure}
 
 \subsection{UseCase diagram}
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/usecase.drawio.png}
+    \includegraphics[width=0.8\textwidth]{src/images/figures/usecase.drawio.png}
     \caption{UseCase diagram}
     \label{fig:UseCase diagram}
 \end{figure}
@@ -511,7 +512,7 @@ Overall, the class diagram demonstrates a modular and well-organized design wher
 \subsection{Sequence diagram}
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/sequence_diagram.png}
+    \includegraphics[width=0.8\textwidth]{src/images/figures/sequence_diagram.png}
     \caption{Sequence Diagram}
     \label{fig:Sequence Diagram}
 \end{figure}
