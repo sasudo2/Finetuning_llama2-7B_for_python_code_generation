@@ -1,7 +1,7 @@
 \chapter{IMPLEMENTATION DETAILS}
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.5\textwidth]{src/images/figures/implementation.drawio.png}
+    \includegraphics[width=\textwidth]{src/images/figures/implementation.drawio.png}
     \caption{Methodology}
     \label{fig:Implementation of the project}
 \end{figure}
@@ -13,7 +13,7 @@ Fine-tuning Llama-2 7B for Python code generation requires a high-quality, domai
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\textwidth]{src/images/figures/data_preparation.png}
+    \includegraphics[width=0.5\textwidth]{src/images/figures/data_preparation.png}
     \caption{Dataset Preparation Pipeline}
     \label{fig:First_Step}
 \end{figure}
@@ -163,7 +163,7 @@ Refined (Functional/Clean) & 21,542 & --  & High \\
 We utilized Regular Expressions (Regex) to programmatically identify and remove three primary types of non-functional text:
 \begin{enumerate}
     \item \textbf{Single-Line Comments:} Identified via the pattern \texttt{\#.*?$\backslash$n}, ensuring that inline annotations are removed without disrupting the line-break structure.
-    \item \textbf{Triple-Quote Docstrings:} Both double-quote (\texttt{"""..."""}) and single-quote (\texttt{'''...'''}) docstrings were targeted using the \texttt{DOTALL} flag to capture multi-line string literal documentation.
+    \item \textbf{Triple-Quote Docstrings:} Both double-quote (\texttt{""""..."""}) and single-quote (\texttt{'''...'''}) docstrings were targeted using the \texttt{DOTALL} flag to capture multi-line string literal documentation.
 \end{enumerate}
 
 
