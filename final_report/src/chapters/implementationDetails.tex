@@ -145,7 +145,7 @@ To ensure the model prioritizes functional logic over natural language explanati
 \begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{lccc}
 \toprule
-\textbf{Stage} & \textbf{Sample Count} & \textbf{Avg. Tokens/Sample} & \textbf{Est. Logic Density} \\ 
+\textbf{Stage} & \textbf{Sample Count} & \textbf{Est. Logic Density} \\ 
 \midrule
 Raw Combined               & 60,000  & Low \\
 Filtered (Logic Only)      & 34,000  & Medium \\
@@ -157,7 +157,7 @@ Refined (Functional/Clean) & 21,542   & High \\
 \end{table}
 
 \subsubsection{Regex-Based Feature Isolation}
-We utilized Regular Expressions (Regex) to programmatically identify and remove three primary types of non-functional text:
+We utilized Regular Expressions (Regex) to programmatically identify and remove two primary types of non-functional text:
 \begin{enumerate}
     \item \textbf{Single-Line Comments:} Identified via the pattern \texttt{\#.*?$\backslash$n}, ensuring that inline annotations are removed without disrupting the line-break structure.
     \item \textbf{Triple-Quote Docstrings:} Both double-quote (\texttt{""""..."""}) and single-quote (\texttt{'''...'''}) docstrings were targeted using the \texttt{DOTALL} flag to capture multi-line string literal documentation.
@@ -197,10 +197,7 @@ To leverage the pre-trained conversational abilities of the Llama-2-7B-Chat mode
 
 The structure utilized follows the schema:
 \begin{verbatim}
-<s>[INST] <<SYS>>
-{system_prompt}
-<</SYS>>
-
+<s>[INST] 
 {user_instruction} [/INST] {code_solution} </s>
 \end{verbatim}
 
@@ -390,7 +387,7 @@ The evaluation framework leveraged several state-of-the-art software tools that 
 \begin{itemize}
     \item \textbf{Weights \& Biases (W\&B):} This platform served as the primary telemetry suite. By initializing \texttt{wandb} within the \texttt{TrainingArguments}, we achieved real-time visualization of training dynamics. This enabled us to monitor the \textit{Validation Loss} and \textit{Gradient Norms} across 50-step intervals, ensuring that the model did not suffer from gradient instability despite the aggressive 4-bit quantization.
     
-    \item \textbf{Hugging Face Hub API:} We utilized the \texttt{huggingface\_hub} library to maintain a robust versioning system. Every optimized checkpoint was synchronized to a private repository (\texttt{pradip777/llama-2-PCG}). This software integration allowed for "check-pointed evaluation," where intermediate model states could be loaded and tested against the final converged weights.
+    \item \textbf{Hugging Face Hub API:} We utilized the \texttt{huggingface\_hub} library to maintain a robust versioning system. Every optimized checkpoint was synchronized to a repository. This software integration allowed for "check-pointed evaluation," where intermediate model states could be loaded and tested against the final converged weights.
     
     \item \textbf{PEFT and BitsAndBytes:} The \texttt{peft} library was instrumental in evaluating inference efficiency. By loading only the 160MB adapter file onto the frozen 4-bit base model, we verified that the software could perform low-latency evaluation on single-GPU environments while maintaining the logical integrity of the \texttt{NF4} weights.
 \end{itemize}
@@ -478,7 +475,7 @@ Overall, the integration of Ollama enables an efficient, scalable, and privacy-p
     \caption{UseCase diagram}
     \label{fig:usecase_diagram}
 \end{figure}
-The use case diagram illustrated in Figure~\ref{fig:UseCase diagram} represents the interaction between the user and the system components involved in the Python code generation process. It highlights the primary functionalities provided by the system and how external actors interact with them.
+The use case diagram illustrated in Figure~\ref{fig:usecase_diagram} represents the interaction between the user and the system components involved in the Python code generation process. It highlights the primary functionalities provided by the system and how external actors interact with them.
 
 The diagram consists of two main actors: the \textbf{User} and the \textbf{Ollama Engine}. The User is the primary actor who interacts with the system through various use cases, while the Ollama Engine represents the backend model responsible for generating and processing responses.
 
