@@ -234,7 +234,7 @@ While standard BLEU measures $n$-gram overlap, it often fails to capture the log
 
 
 \subsection{Performance Results}
-The quantitative results for the 1,379 test samples are summarized in Table \ref{tab:test_metrics}. The model achieved a \textbf{Corpus BLEU of 10.27} and a \textbf{CodeBLEU score of 0.2363}.
+The quantitative results for the 1,392 test samples are summarized in Table \ref{tab:test_metrics}. The model achieved a \textbf{Corpus BLEU of 10.27} and a \textbf{CodeBLEU score of 0.2363}.
 
 \begin{figure}[H]
     \centering
@@ -245,7 +245,7 @@ The quantitative results for the 1,379 test samples are summarized in Table \ref
 
 \begin{table}[H]
 \centering
-\caption{Final Model Performance on Test Set ($N=1379$)}
+\caption{Final Model Performance on Test Set ($N=1392$)}
 \label{tab:test_metrics}
 \begin{tabular}{@{}ll@{}}
 \toprule
@@ -277,7 +277,7 @@ The breakdown of the CodeBLEU components reveals critical insights into the mode
 \end{itemize}
 
 \subsection{Conclusion on Quantitative Evaluation}
-The achievement of a 0.2363 CodeBLEU score on a large test set of 1,379 samples indicates that the model has evolved from a general-purpose language model into a specialized Python generator. The high scores in AST and Dataflow matching specifically justify the model's readiness for deployment as a local code assistant, as these metrics correlate most strongly with the actual execution success of generated code.
+The achievement of a 0.2363 CodeBLEU score on a large test set of 1,392 samples indicates that the model has evolved from a general-purpose language model into a specialized Python generator. The high scores in AST and Dataflow matching specifically justify the model's readiness for deployment as a local code assistant, as these metrics correlate most strongly with the actual execution success of generated code.
 
 \section{Functional Evaluation: Pass@k on HumanEval}
 While quantitative metrics like CodeBLEU provide insight into structural similarity, the ultimate measure of a code generation model is its functional correctness. We evaluated the model using the \textbf{OpenAI HumanEval} benchmark, which consists of 164 hand-written Python programming problems. Each problem includes a function signature, a docstring, and a set of unit tests to verify the generated solution.
@@ -285,9 +285,9 @@ While quantitative metrics like CodeBLEU provide insight into structural similar
 \subsection{The Pass@k Metric}
 To account for the stochastic nature of Large Language Models, we employ the \textbf{Pass@k} metric. Generating a single sample ($k=1$) often underrepresents the model's actual problem-solving capability. The Pass@k metric calculates the probability that at least one of the top-$k$ generated samples passes all hidden unit tests:
 \begin{equation}
-\text{pass@k} := \mathbb{E}_{\text{Problems}} \left[ 1 - \frac{\binom{n-c}{k}}{\binom{n}{k}} \right]
+\text{pass@k} = \mathbb{E}_{\text{Problems}} \left[ 1 - \frac{\binom{n-c}{k}}{\binom{n}{k}} \right]
 \end{equation}
-where $n$ is the total number of samples generated per problem (we utilized $n=10$) and $c$ is the number of correct samples that passed all unit tests.
+where $n$ is the total number of samples generated per problem (we utilized $n=5$) and $c$ is the number of correct samples that passed all unit tests.
 
 
 
