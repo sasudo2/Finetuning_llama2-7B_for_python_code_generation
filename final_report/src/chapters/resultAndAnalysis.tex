@@ -16,7 +16,7 @@ As illustrated in Table \ref{tab:training_results}, the model experienced its mo
 
 The narrow gap between the Final Training Loss ($0.3957$) and Validation Loss ($0.4099$) at step 700 suggests that the chosen dropout rate ($0.0961$) and LoRA rank ($r=8$) provided effective regularization, maintaining the model's ability to generalize to unseen algorithmic problems.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Detailed Training and Validation Loss Logs}
 \label{tab:training_results}
@@ -412,12 +412,13 @@ The observed errors can be grouped into the following categories:
 \subsubsection{Example Failure Case}
 
 \textbf{Problem:}
-\begin{verbatim}Create a function def separate_paren_groups(paren_string: str)
-     -> List[str]: that takes a single string as input. This string contains 
-     multiple groups of nested parentheses. Your goal is to identify each 
-     independent, balanced group, separate them into individual strings, 
-     and return them as a list.
-\end{verbatim}
+\begin{Verbatim}[breaklines=true,breakanywhere=true]
+Create a function def separate_paren_groups(paren_string: str)
+-> List[str]: that takes a single string as input. This string contains
+multiple groups of nested parentheses. Your goal is to identify each
+independent, balanced group, separate them into individual strings,
+and return them as a list.
+\end{Verbatim}
 
 
 \textbf{Generated Output:}
