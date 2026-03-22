@@ -607,58 +607,6 @@ def factorial(n):
 The \texttt{Qwen2.5-Coder-1.5B} model is a specialized decoder-only language model from the Qwen-2.5 family, specifically engineered for high-precision code intelligence. Despite its compact footprint of 1.54 billion parameters, it incorporates state-of-the-art structural optimizations that allow it to rival larger general-purpose models in code classification and generation tasks.
 
 
-
-\subsection{Dense Transformer Backbone and GQA}
-The model utilizes a Dense Transformer architecture refined for the structural dependencies of source code. A critical efficiency feature is the implementation of \textbf{Grouped-Query Attention (GQA)}. 
-
-Unlike standard Multi-Head Attention where each Query ($Q$) head has a dedicated Key ($K$) and Value ($V$) head, GQA shares a single KV head across a group of query heads. This reduction in the KV cache size is expressed as:
-\begin{equation}
-\text{KV\_Cache\_Size} \propto \frac{n_{kv\_heads}}{n_{q\_heads}} \cdot d_{head} \cdot L
-\end{equation}
-where $L$ is the sequence length. This allows the 1.5B model to perform high-throughput batching during our data classification phase without exhausting VRAM.
-
-
-
-\subsection{Rotary Positional Embeddings (RoPE) and Context Handling}
-To handle the long-range dependencies inherent in software projects, Qwen2.5-Coder employs an advanced version of \textbf{Rotary Positional Embeddings (RoPE)}. By modifying the base frequency $\theta$ of the rotation:
-\begin{equation}
-f(x_m, m) = \mathbf{R}^d_{\Theta, m} \mathbf{x}_m
-\end{equation}
-The model supports an effective context window of \textbf{128,000 tokens}. This enables the model to "see" entire script files during classification, ensuring that the context of a function is not lost due to truncation.
-
-\subsection{SwiGLU Activation and Gated Logic}
-The Feed-Forward Network (FFN) layers utilize the \textbf{SwiGLU} activation function. This gated linear unit allows the model to learn more complex, conditional representations of code syntax compared to standard ReLU:
-\begin{equation}
-\text{SwiGLU}(\mathbf{x}) = \text{SiLU}(\mathbf{x} \mathbf{W}) \odot (\mathbf{x} \mathbf{V})
-\end{equation}
-This mathematical flexibility is vital for the model to distinguish between similar-looking code snippets that belong to different functional domains (e.g., distinguishing Competitive Programming from Web Development).
-
-
-
-\subsection{Model Specifications}
-The specific configuration of the Qwen2.5-Coder-1.5B variant used in our preprocessing pipeline is summarized in Table \ref{tab:qwen_specs}.
-
-\begin{table}[h]
-\centering
-\caption{Architectural Specifications of Qwen2.5-Coder-1.5B}
-\label{tab:qwen_specs}
-\begin{tabular}{|l|l|}
-\hline
-\textbf{Feature} & \textbf{Specification} \\ \hline
-Total Parameters & 1.54 Billion \\
-Number of Layers & 28 \\
-Hidden Dimension ($d_{model}$) & 1536 \\
-Attention Heads (Q) & 12 \\
-KV Heads (GQA) & 2 \\
-Intermediate Dimension (FFN) & 8960 \\
-Context Length & 128,000 Tokens \\
-Vocabulary Size & 151,936 \\ \hline
-\end{tabular}
-\end{table}
-
-\subsection{Instruction Tuning for Classification}
-Beyond the raw architecture, the model underwent specialized \textbf{Instruction Fine-Tuning} using a mix of synthetic and human-curated code datasets. This tuning focused on "Chain-of-Thought" (CoT) reasoning, making the 1.5B model exceptionally reliable at identifying algorithmic patterns in our 18k Alpaca and 42k FlyTech datasets.
-
 \subsection{Justification for Model Selection: Qwen2.5-Coder-1.5B vs. Alternatives}
 
 For the automated data cleaning and classification phase, we evaluated several candidate models. The selection of \texttt{Qwen2.5-Coder-1.5B} was based on a multi-dimensional trade-off between inference throughput, VRAM footprint, and code-specific reasoning accuracy.

@@ -29,6 +29,9 @@
 
 \begin{document}
 
+% Override class file tocdepth to show subsections
+\setcounter{tocdepth}{2}
+
 % =====================
 % FRONTMATTER
 % =====================
@@ -40,8 +43,8 @@
 \pagenumbering{roman}
 
 % \input{src/frontmatter/certificate}
-% \input{src/frontmatter/declar}
-% \input{src/frontmatter/copyright}
+\input{src/frontmatter/declar}
+\input{src/frontmatter/copyright}
 
 % Standard frontmatter
 \input{src/frontmatter/acknowledgement}
@@ -61,16 +64,16 @@
 \input{src/chapters/resultAndAnalysis}
 \input{src/chapters/futureenhancement}
 \input{src/chapters/conclusion}
-\input{src/chapters/appendices}
+% \input{src/chapters/appendices}
 
 % =====================
 % BACKMATTER / APPENDICES
 % =====================
 \clearpage
 
-% \appendix
-% \addcontentsline{toc}{chapter}{APPENDICES}
-% \input{src/backmatter/back.tex}
+\appendix
+\addcontentsline{toc}{chapter}{APPENDICES}
+\input{src/backmatter/back.tex}
 % \input{src/backmatter/studentGuide.tex}
 
 % =====================
