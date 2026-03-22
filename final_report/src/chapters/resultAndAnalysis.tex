@@ -409,6 +409,7 @@ The observed errors can be grouped into the following categories:
 \subsubsection{Example Success Case}
 
 \textbf{Problem:}
+
 Create a function \texttt{from typing import List\n\n\ndef filter\_by\_substring(strings: List[str], substring: str) -> List[str]:}
 that filter an input list of strings only for ones that contain given substring.
 
@@ -519,7 +520,7 @@ These observations suggest that the model could benefit from:
 
 
 \section{System Performance in Deployment (Ollama)}
-The final model was converted to GGUF format and deployed via Ollama. Performance on a local NVIDIA T4 GPU showed an average inference speed of \textbf{24 tokens per second}.
+The final model was converted to GGUF format and deployed via Ollama. Performance on a local NVIDIA RTX 4050 showed an average inference speed of \textbf{15.67 tokens per second}.
 
 
 
@@ -530,8 +531,8 @@ The final model was converted to GGUF format and deployed via Ollama. Performanc
 \begin{tabular}{@{}ll@{}}
 \toprule
 \textbf{Metric} & \textbf{Value} \\ \midrule
-Time to First Token & 1.2s \\
-Average Tokens Per Second & 24.5 t/s \\
+Time to First Token & 0.52s \\
+Average Tokens Per Second & 15.67 t/s \\
 Peak VRAM Usage & 5.1 GB \\ \bottomrule
 \end{tabular}
 \end{table}

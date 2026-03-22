@@ -35,7 +35,7 @@ LeetCode Problem Dataset (gzipchrist) & $\sim$1825 problems & Detailed problem d
 TACO (Tasks for Code Generation) Dataset & $\sim$26,000 tasks & Natural language programming tasks paired with executable Python solutions. Covers real-world logic, algorithmic problems, and structured coding instructions. & Apache 2.0 \\
 \hline
 \end{tabular}
-\caption{Datasets used for fine-tuning Llama-2 7B for Python code generation.}
+\caption{Datasets Used for Fine-Tuning Llama-2 7B for Python Code Generation.}
 \end{table}
 
 \subsection{Preparation}
@@ -71,7 +71,7 @@ Among these, 1,860 rows were reserved for testing, and the remaining samples wer
 \begin{figure}[h!]
     \centering
     \includegraphics[width=\textwidth]{final_datasets.png}
-    \caption{final datasets}
+    \caption{Final Datasets}
     \label{fig:Final datasets for fine tuning}
 \end{figure}
 
@@ -118,7 +118,7 @@ LoRA Alpha ($\alpha$) & 32 \\
 Target Modules & \texttt{q\_proj, v\_proj, k\_proj} \\
 \hline
 \end{tabular}
-\caption{Best hyperparameter configuration obtained through random search}
+\caption{Best Hyperparameter Configuration Obtained Through Random Search}
 \end{table}
 
 \subsection{Fine-tuning with Selected Hyperparameters}
@@ -127,7 +127,7 @@ The selected hyperparameters were used to fine-tune the Llama-2 7B model on the 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.7\textwidth]{gpu_usage.png}
-    \caption{GPU Memory Usage During Fine-tuning}
+    \caption{GPU Memory Usage During Fine-Tuning}
     \label{fig:GPU Usage}
 \end{figure}
 
