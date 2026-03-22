@@ -2,8 +2,8 @@
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\textwidth]{src/images/figures/implementation.drawio.png}
-    \caption{Implementation of the project}
-    \label{fig:Implementation of the project}
+    \caption{Implementation of the Project}
+    \label{fig:Implementation of the Project}
 \end{figure}
 
 \section{Data Collection and Preparation}
@@ -19,7 +19,7 @@ Fine-tuning Llama-2 7B for Python code generation requires a high-quality, domai
 \subsection{Dataset Sources}
 
 \begin{table}[h!]
-\caption{Datasets used for fine-tuning Llama-2 7B for Python code generation.}
+\caption{Datasets Used for Fine-tuning Llama-2 7B for Python Code Generation.}
 \centering
 \begin{tabular}{|p{3cm}|p{2cm}|p{3cm}|p{2cm}|}
 \hline
@@ -49,7 +49,7 @@ The primary source for our instruction-following data was the \textbf{iamtarun/p
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\textwidth]{src/images/figures/Flytech.png}
-    \caption{Flytech datasets}
+    \caption{FlyTech Datasets}
     \label{fig:Flytech datasets}
 \end{figure}
 
@@ -65,7 +65,7 @@ To supplement the algorithmic data with broader technical coding patterns, we ut
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\textwidth]{src/images/figures/alpaca.png}
-    \caption{Alpaca datasets}
+    \caption{Alpaca Datasets}
     \label{fig:Alpaca datasets}
 \end{figure}
 
@@ -205,8 +205,8 @@ We utilized the \texttt{LlamaTokenizer} with a fixed \texttt{max\_length} of 512
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{src/images/figures/final_datasets.png}
-    \caption{final datasets}
-    \label{fig:final datasets}
+    \caption{Final Datasets}
+    \label{fig:Final Datasets}
 \end{figure}
 
 \section{Hyperparameter Optimization}
@@ -215,7 +215,7 @@ The fine-tuning of Large Language Models (LLMs) is highly sensitive to the confi
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{src/images/figures/hyperparameter_tuning_flowchart.drawio.png}
-    \caption{Hyperparameter optimization with random search}
+    \caption{Hyperparameter Optimization with Random Search}
     \label{fig:hyperparameter optimization with random search}
 \end{figure}
 
@@ -263,7 +263,7 @@ The HPO process concluded after 45 trials. The objective function was the minimi
 
 \begin{table}[h]
 \centering
-\caption{Best Hyperparameter Configuration (Trial 44)}
+\caption{Best Hyperparameter Configuration (Trial 43)}
 \label{tab:best_params}
 \begin{tabular}{l|l|l}
 \hline
@@ -347,7 +347,7 @@ Random Seed & 42 \\
 LoRA Rank ($r$) & 8 \\
 LoRA Alpha ($\alpha$) & 32 \\
 LoRA Dropout & 0.0961 \\
-LoRA Target Modules & q\_proj, k\_proj, v\_proj, o\_proj, gate\_proj, up\_proj, down\_proj \\
+LoRA Target Modules & q\_proj, k\_proj, v\_proj, o\_proj,\\ & gate\_proj, up\_proj, down\_proj \\
 Loss Strategy & Instruction Masking (Labels = -100) \\
 Evaluation Strategy & Step-based evaluation every 50 steps \\
 Model Logging & Weights \& Biases \\
@@ -369,7 +369,7 @@ To optimize memory usage and computational efficiency, the model leveraged 4-bit
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\textwidth]{src/images/figures/gpu_usage_finetuning.png}
-    \caption{GPU usage during the fine-tuning process, showing utilization trends across the dual T4 GPUs.}
+    \caption{GPU Usage During the Fine-Tuning Process, Showing Utilization Trends Across the Dual T4 GPUs.}
     \label{fig:gpu_usage_finetuning}
 \end{figure}
 
@@ -466,14 +466,14 @@ Overall, the integration of Ollama enables an efficient, scalable, and privacy-p
     \label{fig:ollama_inference}
 \end{figure}
 
-\subsection{UseCase diagram}
+\subsection{Use Case Diagram}
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{src/images/figures/usecase.drawio.png}
-    \caption{UseCase diagram}
-    \label{fig:usecase_diagram}
+    \caption{Use Case Diagram}
+    \label{fig:Use_Case_Diagram}
 \end{figure}
-The use case diagram illustrated in Figure~\ref{fig:usecase_diagram} represents the interaction between the user and the system components involved in the Python code generation process. It highlights the primary functionalities provided by the system and how external actors interact with them.
+The use case diagram illustrated in Figure~\ref{fig:Use_Case_Diagram} represents the interaction between the user and the system components involved in the Python code generation process. It highlights the primary functionalities provided by the system and how external actors interact with them.
 
 The diagram consists of two main actors: the \textbf{User} and the \textbf{Ollama Engine}. The User is the primary actor who interacts with the system through various use cases, while the Ollama Engine represents the backend model responsible for generating and processing responses.
 
@@ -487,7 +487,7 @@ The Ollama Engine interacts with both the \textit{Generate Code Solution} and \t
 
 Overall, the use case diagram demonstrates a user-centric design where the system not only generates code solutions but also provides explanations, making it useful for both practical problem-solving and learning purposes.
 
-\subsection{Class diagram}
+\subsection{Class Diagram}
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/class_diagram.drawio.png}
@@ -508,7 +508,7 @@ Finally, the \textbf{Model Response Parser} class is responsible for processing 
 
 Overall, the class diagram demonstrates a modular and well-organized design where each class has a specific responsibility, enabling maintainability, scalability, and clear separation of concerns within the system.
 
-\subsection{Sequence diagram}
+\subsection{Sequence Diagram}
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{src/images/figures/sequence_diagram.png}
@@ -528,7 +528,7 @@ First, the generated response is sent from the model to the Ollama Client, which
 This sequential flow ensures a clear and organized communication pipeline, enabling efficient request handling, proper data transformation, and seamless interaction between the user interface and the underlying model.
 
 
-\subsection{Component diagram}
+\subsection{Component Diagram}
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/component_diagram.png}
@@ -548,7 +548,7 @@ Once the response is generated, it is sent to the \textit{Response Processing Mo
 This modular architecture ensures clear separation of concerns, scalability, and efficient communication between different components, making the system robust and maintainable.
 
 
-\subsection{Activity diagram}
+\subsection{Activity Diagram}
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth, height=1\textwidth]{src/images/figures/activity_diagram.png}
