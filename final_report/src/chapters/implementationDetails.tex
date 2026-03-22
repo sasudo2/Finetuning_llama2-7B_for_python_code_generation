@@ -258,33 +258,6 @@ A critical component of our implementation was the custom tokenization logic. To
 
 \subsection{Formalism of Instruction Masking}In standard Supervised Fine-Tuning (SFT), the goal is to minimize the negative log-likelihood of the target sequence. However, in our implementation, we modified the objective function to focus strictly on code synthesis. Given a sequence of tokens $Y = \{y_1, y_2, \dots, y_n\}$, where $Y_{prompt} \subset Y$ and $Y_{code} \subset Y$, the loss $\mathcal{L}$ is calculated as:\begin{equation}\mathcal{L} = -\sum_{i \in Y_{code}} \log P(y_i | y_{<i})\end{equation}By assigning $y_i = -100$ for all $i \in Y_{prompt}$, the indices are ignored by the PyTorch \texttt{CrossEntropyLoss} function. This "Completion-only" training ensures that the model does not waste representational capacity on the user's input, which is already provided during inference. This is particularly important for Python generation, as the model must learn that the transition from the \texttt{[/INST]} tag to the \texttt{def} keyword is the most critical logical boundary.
 
-\subsection{Final Optimization Results}
-The HPO process concluded after 45 trials. The objective function was the minimization of the Validation Loss.
-
-\begin{table}[h]
-\centering
-\caption{Best Hyperparameter Configuration (Trial 43)}
-\label{tab:best_params}
-\begin{tabular}{l|l|l}
-\hline
-\textbf{Category} & \textbf{Parameter} & \textbf{Optimal Value} \\
-\hline
-\multirow{3}{*}{\textbf{Optimization}} & Learning Rate & $2.9089 \times 10^{-5}$ \\
- & Scheduler & \texttt{cosine} \\
- & Warmup Ratio & 0.0693 \\
-\hline
-\multirow{3}{*}{\textbf{LoRA}} & Rank ($r$) & 8 \\
- & Alpha ($\alpha$) & 32 \\
- & Dropout & 0.0961 \\
-\hline
-\multirow{2}{*}{\textbf{Training}} & Batch Size & 4 (Effective BS: 16) \\
- & Precision & 4-bit (NF4) \\
-\hline
-\end{tabular}
-\end{table}
-
-\textbf{Analysis:} The best trial achieved a validation loss of \textbf{0.5847}. Analysis of the trials showed that the model was highly sensitive to the \texttt{lora\_alpha} to \texttt{lora\_r} ratio. A higher ratio (32:8) acted as a powerful multiplier for the learned weights, which was particularly effective for the specialized domain of code generation.
-
 
 \section{Fine-Tuning Implementation}
 
