@@ -84,7 +84,6 @@ The gradient with respect to $A$ and $B$ is adjusted accordingly:
 
 
 \chapter{HYPERPARAMETER OPTIMIZATION RESULTS}
-\Needspace{48\baselineskip}
 \begin{table}[H]
 \centering
 \caption{Optuna Hyperparameter Optimization Results}
@@ -151,10 +150,30 @@ Trial & Learning Rate & Scheduler & LoRA r & LoRA $\alpha$ & Dropout & Batch Siz
 
 \chapter{CODE SNIPPETS}
 
+\section{Data Preparation}
+\subsection{Removal of comments and docstrings}
+Here is the implementation of removal of comments and docstring present in the dataset.
+
+\begin{lstlisting}[style=cleanpython, caption={Removal of Comments and Docstrings}, label={lst:optuna}]
+def remove_comments_and_docstrings(code):
+    code = re.sub(r'#.*?\n', '\n', code)
+    code = re.sub(r'""".*?"""', '', code, flags=re.DOTALL)
+    code = re.sub(r"'''.*?'''", '', code, flags=re.DOTALL)
+    return code
+\end{lstlisting}
+
+\subsection{Filteration of function only code}
+Here is the implementation of filteration of function only code present in the dataset.
+\begin{lstlisting}[style=cleanpython, caption={Filteration of Function Only Code}, label={lst:optuna}]
+def filter_only_functions(df, text_col='code'):
+    mask = df[text_col].str.lower().str.contains(r'\bdef\b')
+    return df[mask]
+\end{lstlisting}
+
 \section{Hyperparameter Optimization}
 Here is the implementation of hyperparameter optimization using Optuna for fine-tuning the LLaMA-2-7B model with QLoRA. 
 
-\begin{lstlisting}[style=cleanpython, caption={Optuna-based QLoRA Fine-Tuning Implementation}, label={lst:optuna}]
+\begin{lstlisting}[style=cleanpython, caption={Hyperparameter Optimization with Optuna}, label={lst:optuna}]
 
 MAX_LENGTH = 512
 SEED = 42
@@ -503,7 +522,7 @@ def objective(trial):
 Here is the implementation of the fine-tuning process using QLoRA.
 
 
-\begin{lstlisting}[style=cleanpython, caption={Optuna-based QLoRA Fine-Tuning Implementation}, label={lst:optuna}]
+\begin{lstlisting}[style=cleanpython, caption={Fine-Tuning Implementation}, label={lst:optuna}]
 
 # ============================================================================
 # CONFIG CLASS WITH OPTUNA BEST PARAMETERS
@@ -627,16 +646,20 @@ tokenizer = AutoTokenizer.from_pretrained(config.model_name)
 tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 
-train_dataset = train_dataset.map(lambda x: preprocess_function_with_masking(x, tokenizer, 
-                config.max_seq_length), batched=True, remove_columns=dataset.column_names)
-eval_dataset = eval_dataset.map(lambda x: preprocess_function_with_masking(x, tokenizer, 
-                config.max_seq_length), batched=True, remove_columns=dataset.column_names)
+train_dataset = train_dataset.map(lambda x: preprocess_function_with_masking
+                (x, tokenizer, config.max_seq_length), batched=True, 
+                remove_columns=dataset.column_names)
+eval_dataset = eval_dataset.map(lambda x: preprocess_function_with_masking
+                (x, tokenizer, config.max_seq_length), batched=True, 
+                remove_columns=dataset.column_names)
 
 # ============================================================================
 # QUANTIZATION CONFIG
 # ============================================================================
-bnb_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", 
-                    bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
+bnb_config = BitsAndBytesConfig(load_in_4bit=True, 
+                    bnb_4bit_quant_type="nf4", 
+                    bnb_4bit_compute_dtype=torch.float16, 
+                    bnb_4bit_use_double_quant=True)
 
 # ============================================================================
 # LOAD MODEL
@@ -669,7 +692,8 @@ model.print_trainable_parameters()
 # COMPUTE WARMUP STEPS FROM RATIO
 # ============================================================================
 total_training_steps = (len(train_dataset) // 
-        (config.batch_size * config.gradient_accumulation_steps)) * config.num_epochs
+        (config.batch_size * config.gradient_accumulation_steps)) 
+        * config.num_epochs
 config.warmup_steps = int(total_training_steps * config.warmup_ratio)
 
 # ============================================================================
