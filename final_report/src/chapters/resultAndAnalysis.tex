@@ -212,7 +212,7 @@ Warmup Ratio & 0.0693 \\ \bottomrule
 The transition from \textbf{Trial 0 (1.0179)} to \textbf{Trial 43 (0.5847)} represents a \textbf{42.5\% improvement} in the model's objective value. The convergence of the trials toward the $0.58$ mark in the final stages (Trials 40, 43, and 44) indicates that the search space successfully reached a local optimum. The use of a warmup ratio of approximately 7\% proved essential in preventing gradient explosion during the initial stages of NF4 weight adaptation.
 
 \section{Evaluation on Quantitative Metrics}
-Following the hyperparameter optimization phase, the performance of the final fine-tuned Llama-2-7B model was validated on a held-out test set consisting of 1,379 samples. Evaluation was conducted using a dual-metric approach: \textbf{SacreBLEU} for surface-level linguistic similarity and \textbf{CodeBLEU} for functional and structural alignment with reference solutions.
+Following the hyperparameter optimization phase, the performance of the final fine-tuned Llama-2-7B model was validated on a held-out test set consisting of 1,392 samples. Evaluation was conducted using a dual-metric approach: \textbf{SacreBLEU} for surface-level linguistic similarity and \textbf{CodeBLEU} for functional and structural alignment with reference solutions.
 
 \subsection{Limitations of Evaluation Metrics}
 
