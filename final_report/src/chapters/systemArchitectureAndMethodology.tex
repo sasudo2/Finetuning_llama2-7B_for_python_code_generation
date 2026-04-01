@@ -1,10 +1,6 @@
 \chapter{SYSTEM ARCHITECTURE AND METHODOLOGY}
 
-<<<<<<< HEAD
 \section{System Architecture of LLaMA-2 \cite{Touvron2023Llama2}}
-=======
-\section{System Architecture of LLaMA-2}
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 LLaMA-2 (Large Language Model Meta AI) is a family of large-scale transformer-based
 language models developed by Meta. It is designed to generate human-like text by
 learning statistical patterns from large corpora of textual data. LLaMA-2 models are
@@ -76,11 +72,7 @@ the model suitable for text and code generation tasks.
 
 Each decoder layer consists of a multi-head self-attention module followed by a
 position-wise feed-forward network. The multi-head attention mechanism enables
-<<<<<<< HEAD
 the model to capture diverse linguistic and contextual relationships by attending
-=======
-the model to capture diverse linguistic and semantic relationships by attending
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 to information from multiple representation subspaces. Residual connections and
 layer normalization are incorporated to stabilize training, improve convergence,
 and facilitate efficient gradient propagation across deep network layers.
@@ -124,11 +116,7 @@ The chat model is designed to maintain conversational context across multiple tu
 In summary, the chat model of LLaMA 2 enhances the base language model by incorporating dialogue-focused fine-tuning and human feedback mechanisms, enabling it to generate coherent, context-aware, and user-aligned conversational responses.
 
 
-<<<<<<< HEAD
 \subsection{Laws of scaling \cite{Kaplan2020Scaling}}
-=======
-\subsection{Laws of scaling}
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 Scaling laws describe predictable patterns in how a model’s performance changes when three main aspects are scaled:
 \begin{enumerate}
     \item Model size (parameters)
@@ -379,11 +367,7 @@ The outputs from all heads are then concatenated and linearly transformed using 
 
 This parallel processing allows the model to capture various linguistic features, such as syntactic dependencies and contextual nuances, more effectively than a single-head attention mechanism.
 
-<<<<<<< HEAD
 \subsection{Rotary Positional Embeddings (RoPE) }
-=======
-\subsection{Rotary Positional Embeddings (RoPE)}
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\textwidth]{src/images/figures/rope.png}
@@ -611,7 +595,6 @@ def factorial(n):
 \end{small}
 
 
-<<<<<<< HEAD
 \section{Dataset Collection and Preparation}
 The efficacy of a fine-tuned Large Language Model (LLM) is heavily dependent on the quality and diversity of the training corpus. For this project, a multi-stage data engineering pipeline was developed to transform raw open-source data into a high-fidelity instructional corpus specialized for Pythonic reasoning.
 
@@ -632,26 +615,11 @@ To ensure the model specialized in competitive programming rather than generic b
     \item \textbf{Teacher-Model Classification:} We utilized the \texttt{Qwen2.5-Coder-1.5B} model as a zero-shot classifier. Each entry was labeled based on its domain (e.g. "Algorithmic", "Web Development", "Data Science"). We prioritized the "Algorithmic" subset to maximize the model's problem-solving density.
     \item \textbf{Heuristic Pruning:} Entries with responses less than 7 words and repeat ratio greater than 0.4 were filtered to maintain a high information-to-token ratio.
 \end{enumerate}
-=======
-\section{System Architecture: Qwen2.5-Coder-1.5B}
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=\textwidth]{src/images/figures/quen-model.png}
-    \caption{Qwen2.5-Coder-1.5B Model Architecture}
-    \label{fig:Qwen2.5-Coder-1.5B Model Architecture}
-\end{figure}
-
-The \texttt{Qwen2.5-Coder-1.5B} model is a specialized decoder-only language model from the Qwen-2.5 family, specifically engineered for high-precision code intelligence. Despite its compact footprint of 1.54 billion parameters, it incorporates state-of-the-art structural optimizations that allow it to rival larger general-purpose models in code classification and generation tasks.
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 
 
 \subsection{Justification for Model Selection: Qwen2.5-Coder-1.5B vs. Alternatives}
 
-<<<<<<< HEAD
 The \texttt{Qwen2.5-Coder-1.5B} model is a specialized decoder-only language model from the Qwen-2.5 family, specifically engineered for high-precision code intelligence. Despite its compact footprint of 1.54 billion parameters, it incorporates state-of-the-art structural optimizations that allow it to rival larger general-purpose models in code classification and generation tasks.
-=======
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 For the automated data cleaning and classification phase, we evaluated several candidate models. The selection of \texttt{Qwen2.5-Coder-1.5B} was based on a multi-dimensional trade-off between inference throughput, VRAM footprint, and code-specific reasoning accuracy.
 
 
@@ -672,12 +640,8 @@ CodeLlama-7B & 7B & $\sim$5.5 GB & High & $\sim$42 \\
 \end{adjustbox}
 \end{table}
 
-<<<<<<< HEAD
 \textbf{Technical Rationale}
 
-=======
-\subsubsection{Technical Rationale}
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 As shown in Table \ref{tab:model_comparison}, while larger models like \texttt{Llama-2-7B} possess a higher total parameter count, their general-purpose nature often leads to lower precision in identifying niche "Competitive Programming" patterns compared to a specialized "Coder" variant. 
 
 The primary reasons for our selection include:
@@ -691,48 +655,6 @@ The primary reasons for our selection include:
 
 This architectural efficiency allowed us to dedicate more GPU resources to the primary fine-tuning of \texttt{Llama-2-7B} while maintaining a high-quality, filtered training set.
 
-<<<<<<< HEAD
-=======
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-\section{Dataset Collection and Preparation}
-The efficacy of a fine-tuned Large Language Model (LLM) is heavily dependent on the quality and diversity of the training corpus. For this project, a multi-stage data engineering pipeline was developed to transform raw open-source data into a high-fidelity instructional corpus specialized for Pythonic reasoning.
-
-\subsection{Data Source Synthesis}
-A composite dataset was constructed by merging two primary high-quality sources to ensure a balance between general instruction following and deep algorithmic logic:
-\begin{itemize}
-    \item \textbf{FlyTech Python Dataset (approx. 42k rows):} Selected for its focus on logical reasoning, mathematical problem solving, and functional Python snippets.
-    \item \textbf{Alpaca-Style Code Instructions (approx. 18k rows):} Provides diverse instruction-following scenarios, ranging from simple automation scripting to complex software design patterns.
-\end{itemize}
-
-
-
-\subsection{Automated Classification and Quality Control}
-To ensure the model specialized in competitive programming rather than generic boilerplate code, we implemented an automated filtration layer. This prevented the model from learning suboptimal coding practices or irrelevant "noise".
-
-\begin{enumerate}
-    \item \textbf{Syntactic Verification:} Initial scripts utilized Python's Abstract Syntax Trees (AST) module to parse every code snippet. Entries containing syntax errors or incomplete blocks were immediately discarded.
-    \item \textbf{Teacher-Model Classification:} We utilized the \texttt{Qwen2.5-Coder-1.5B} model as a zero-shot classifier. Each entry was labeled based on its domain (e.g. "Algorithmic", "Web Development", "Data Science"). We prioritized the "Algorithmic" subset to maximize the model's problem-solving density.
-    \item \textbf{Heuristic Pruning:} Entries with responses less then 7 words were filtered to maintain a high information-to-token ratio.
-\end{enumerate}
-
-
-
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \subsection{Data Formatting and Chat Templates}
 To leverage the conversational strengths of Llama-2, each sample was mapped to a structured template. This ensures that during inference, the model recognizes specific delimiters as signals to transition from understanding the problem to generating the solution. The transformation follows the Llama-2 specific schema:
 
@@ -744,33 +666,19 @@ To leverage the conversational strengths of Llama-2, each sample was mapped to a
 
 
 \subsection{Tokenization and Instruction Masking}
-<<<<<<< HEAD
 The Llama-2 BPE (Byte-Pair Encoding) tokenizer was used to convert text into discrete numerical token identifiers with a maximum sequence length of 4096 tokens. 
-=======
-The Llama-2 BPE (Byte-Pair Encoding) tokenizer was used to convert text into discrete numerical identifiers with a maximum sequence length of 4096 tokens. 
-
-
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 
 A critical implementation detail in our methodology is \textbf{Instruction Masking}. During the supervised fine-tuning (SFT) phase, the loss was calculated exclusively on the \texttt{Python\_Code\_Solution} tokens. By setting the labels of the \texttt{User\_Instruction} tokens to $-100$ (the default ignore index in PyTorch's \texttt{CrossEntropyLoss}), we ensured the model's weights were updated based on its ability to generate code, rather than its ability to reconstruct the input question.
 
 \subsection{Dataset Distribution}
 After shuffling and de-duplication, the refined dataset was divided into two distinct subsets to ensure robust training and unbiased evaluation:
 \begin{itemize}
-<<<<<<< HEAD
     \item \textbf{Training Set (90\%):} 12522 prompt-code pairs were used for the primary gradient updates via the QLoRA adapters where 5\% of the training data was reserved for validation.
     \item \textbf{Test Set (10\%):} 1392 prompt-code pairs were reserved for post-training evaluation using the BLEU and CodeBLEU benchmark to measure the model's generalization to unseen problems.
 \end{itemize}
 A split of 90\% training and 10\% testing was chosen to maximize the amount of data available for fine-tuning while still retaining a sufficiently large and representative test set for reliable performance assessment.
 
 In addition to this we utilized 164 unseen problems form Human-eval dataset for functional evaluation of the model's code generation capabilities using pass@k metrics.
-=======
-    \item \textbf{Training Set (90\%):} Used for the primary gradient updates via the QLoRA adapters where 5\% of the training data was reserved for validation.
-    \item \textbf{Test Set (10\%):} Reserved for post-training evaluation using the BLEU and CodeBLEU benchmark to measure the model's generalization to unseen problems.
-\end{itemize}
-
-
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 
 \section{Hyperparameter Tuning}
 
@@ -787,7 +695,6 @@ where $\lambda$ represents the set of hyperparameters, $\Lambda$ denotes the sea
 
 \subsection{Search Strategy}
 
-<<<<<<< HEAD
 For hyperparameter optimization, we employ the \textbf{Tree-structured Parzen Estimator (TPE)}, a Bayesian optimization method well-suited for mixed search spaces containing continuous, discrete, and conditional parameters.
 
 Instead of modeling the objective directly as $p(y \mid x)$ (where $x$ is a hyperparameter configuration and $y$ is validation loss), TPE models the inverse densities $p(x \mid y)$ by splitting observed trials using a threshold $y^*$:
@@ -809,35 +716,6 @@ This strategy provides an effective exploration-exploitation balance:
 Compared with naive grid or random search, TPE improves sample efficiency and converges faster to promising hyperparameter configurations, especially when multiple interacting hyperparameters are involved.
 
 The following hyperparameters were optimized:
-=======
-A structured and adaptive hyperparameter optimization strategy is employed. Initially, candidate configurations are sampled from predefined bounded search spaces. Instead of exhaustively evaluating all combinations, an iterative guided search mechanism is adopted, where new configurations are proposed based on the performance of previously evaluated trials.
-
-This approach balances:
-\begin{itemize}
-    \item \textbf{Exploration}: Sampling diverse regions of the search space.
-    \item \textbf{Exploitation}: Refining promising hyperparameter regions.
-\end{itemize}
-
-Such an adaptive search strategy improves efficiency compared to naive grid search, particularly when multiple interacting hyperparameters are involved.
-
-\subsection{Optimization Objective}
-
-The primary objective of hyperparameter tuning is to minimize validation loss while maintaining stable gradient updates and preventing overfitting.
-
-For each candidate configuration:
-
-\begin{itemize}
-    \item The model is fine-tuned for a reduced number of epochs.
-    \item Validation loss is recorded at regular intervals.
-\end{itemize}
-
-The configuration achieving the lowest stable validation loss is selected for full-scale fine-tuning.
-
-\subsection{Tuned Hyperparameters}
-
-The following hyperparameters are optimized:
-
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \begin{itemize}
     \item \textbf{Learning Rate ($\eta$)}: Controls the magnitude of gradient updates. It significantly affects convergence speed and stability.
     
@@ -855,13 +733,7 @@ The following hyperparameters are optimized:
 \end{itemize}
 
 \subsection{Search Space Definition}
-<<<<<<< HEAD
 To ensure efficient exploration, bounded search spaces are defined as follows:
-=======
-
-To ensure efficient exploration, bounded search spaces are defined as follows:
-
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \begin{itemize}
     \item Learning rate is sampled on a logarithmic scale to enable exploration across multiple orders of magnitude.
     \item Batch size is selected from discrete feasible values constrained by GPU memory.
@@ -872,10 +744,6 @@ To ensure efficient exploration, bounded search spaces are defined as follows:
 Logarithmic sampling of the learning rate is particularly important for transformer-based fine-tuning, as optimal values often differ by orders of magnitude.
 
 \subsection{Practical Considerations}
-<<<<<<< HEAD
-=======
-
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 Due to computational constraints, hyperparameter evaluations are conducted using shortened training schedules. Only the most promising configurations are selected for complete fine-tuning. This multi-stage optimization strategy significantly reduces computational cost while maintaining reliable estimation of performance trends.
 
 Through this structured and adaptive hyperparameter optimization framework, the model achieves improved convergence stability, enhanced generalization performance, and efficient utilization of available hardware resources.
@@ -901,16 +769,9 @@ Let $\mathbf{W} \in \mathbb{R}^{d \times k}$ represent the pre-trained weight ma
 \mathbf{W}_q = Q(\mathbf{W}) \approx \mathbf{W}
 \end{equation}
 
-<<<<<<< HEAD
 In this expression, $Q(\cdot)$ denotes the quantization function that maps high-precision (32-bit or 16-bit) weights into a 4-bit integer space. This process reduces the storage requirements for the backbone weights by approximately 8 times, allowing the model to remain fully loaded in memory during the fine-tuning of the adapter layers.
 
 \subsection{4-bit NormalFloat (NF4) and Memory Optimization}
-=======
-In this expression, $Q(\cdot)$ denotes the quantization function that maps high-precision (32-bit or 16-bit) weights into a 4-bit integer space. This process reduces the storage requirements for the backbone weights by approximately 8 times, allowing the model to remain resident in memory during the fine-tuning of the adapter layers.
-
-\subsection{4-bit NormalFloat (NF4) and Memory Optimization}
-
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 To achieve the goal of fitting the Llama-2-7b model into approximately 5GB of VRAM, we move beyond standard linear quantization to \textbf{4-bit NormalFloat (NF4)} and \textbf{Double Quantization}.
 
 \subsubsection{4-bit NormalFloat (NF4) Data Type}
@@ -928,11 +789,7 @@ where $Q_z(\cdot)$ is the cumulative distribution function (CDF) of the standard
     \caption{Double Quantization}
     \label{fig:Double Quantization}
 \end{figure}
-<<<<<<< HEAD
 While NF4 reduces the weight size, the \textit{quantization constants} (the scaling factors used for each block of weights) still consume significant VRAM. In a standard setup, a block size of 64 requires a 32-bit scaling factor for every 64 weights, adding roughly 0.5 bits per parameter. \textbf{Double Quantization} treats these 32-bit constants as inputs to a \textit{second} layer of quantization. These constants are quantized into 8-bit floats ($FP8$) with a secondary block size of 256. The memory savings are calculated using equation \eqref{eq:memory_savings}
-=======
-While NF4 reduces the weight size, the \textit{quantization constants} (the scaling factors used for each block of weights) still consume significant VRAM. In a standard setup, a block size of 64 requires a 32-bit constant for every 64 weights, adding roughly 0.5 bits per parameter.\textbf{Double Quantization} treats these 32-bit constants as inputs to a \textit{second} layer of quantization. These constants are quantized into 8-bit floats ($FP8$) with a secondary block size of 256. The memory savings are calculated using equation \eqref{eq:memory_savings}
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \begin{equation}
 \begin{split}
 \label{eq:memory_savings}
@@ -942,17 +799,10 @@ While NF4 reduces the weight size, the \textit{quantization constants} (the scal
 \end{equation}
 By implementing DQ, the overhead of quantization constants is reduced from 0.5 bits/set to approximately 0.127 bits/set, allowing the total memory footprint of the Llama-2-7b model to drop to $\sim$4.8GB, well within the limits of consumer-grade hardware like the NVIDIA T4 or L4.
 
-<<<<<<< HEAD
 \subsubsection{Paged Optimizers}
 To further prevent Out-of-Memory (OOM) errors during the backward pass, we utilize \textbf{Paged Optimizers} via the \texttt{bitsandbytes} library. This mechanism leverages NVIDIA's Unified Memory feature to map the optimizer states (e.g., AdamW moments) to the CPU RAM when the GPU's VRAM is exhausted, and pages them back during the update step. This provides a safety net for the 512-token sequence lengths used in our code generation tasks.
 
 \subsubsection{Low-Rank Adaptation (LoRA)}
-=======
-\subsubsection{Paged Optimizers}To further prevent Out-of-Memory (OOM) errors during the backward pass, we utilize \textbf{Paged Optimizers} via the \texttt{bitsandbytes} library. This mechanism leverages NVIDIA's Unified Memory feature to map the optimizer states (e.g., AdamW moments) to the CPU RAM when the GPU's VRAM is exhausted, and pages them back during the update step. This provides a safety net for the 512-token sequence lengths used in our code generation tasks.
-
-\subsubsection{Low-Rank Adaptation (LoRA)}
-
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 Instead of updating the entire quantized matrix $\mathbf{W}_q$, which remains frozen, LoRA introduces trainable low-rank matrices $\mathbf{A} \in \mathbb{R}^{d \times r}$ and $\mathbf{B} \in \mathbb{R}^{r \times k}$ where the rank $r \ll \min(d,k)$. The adapted weight matrix is expressed as:
 
 \begin{equation}
@@ -963,10 +813,6 @@ Here, $\Delta \mathbf{W}$ captures task-specific updates in a low-dimensional su
 
 \subsubsection{Forward Pass with QLoRA}
 During the forward pass, the adapted weight is used in the standard linear layer to compute the output $\mathbf{y}$ for a given input $\mathbf{x}$:
-<<<<<<< HEAD
-=======
-
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \begin{equation}
 \mathbf{y} = (\text{dequant}(\mathbf{W}_q) + \mathbf{A}\mathbf{B}) \mathbf{x} + \mathbf{b}
 \end{equation}
@@ -982,20 +828,11 @@ The training efficiency of QLoRA is characterized by the following factors:
 \end{itemize}
 
 In summary, the governing formulation for QLoRA-based fine-tuning used in this study is:
-<<<<<<< HEAD
-=======
-
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \begin{equation}
 \label{eq:qlora_final}
 \boxed{\mathbf{W}_{\text{QLoRA}} = Q(\mathbf{W}) + \mathbf{A}\mathbf{B}}
 \end{equation}
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \section{Fine-Tuning}
 Fine-tuning is the process of adapting a pre-trained language model (PLM) to a specific downstream task or domain by continuing the training process on a smaller, task-specific dataset. This approach leverages the broad linguistic and factual knowledge acquired during the pre-training phase, significantly reducing the computational resources and data volume required to achieve high performance on specialized tasks.
 
@@ -1009,30 +846,17 @@ Fine-tuning is the process of adapting a pre-trained language model (PLM) to a s
 
 \subsection{Mathematical Formulation of Fine-Tuning}
 Consider a pre-trained model with parameters $\theta \in \mathbb{R}^d$, initially trained on a large-scale general corpus $\mathcal{D}_{\text{pretrain}}$. The model defines a conditional probability distribution over token sequences:
-<<<<<<< HEAD
 $$
 P_\theta (y \mid x)
 $$
 where $x$ represents the input sequence and $y$ represents the target sequence.
 
 For a specific downstream task characterized by a dataset $\mathcal{D}_{\text{task}} = \{(x_i, y_i)\}_{i=1}^N$, the fine-tuning process adjusts the parameters $\theta$ to minimize a task-specific loss function $\mathcal{L}(\theta)$. This is typically achieved using the cross-entropy loss:
-=======
-
-$$
-P_\theta (y \mid x)
-$$
-
-where $x$ represents the input sequence and $y$ represents the target sequence.
-
-For a specific downstream task characterized by a dataset $\mathcal{D}_{\text{task}} = \{(x_i, y_i)\}_{i=1}^N$, the fine-tuning process adjusts the parameters $\theta$ to minimize a task-specific loss function $\mathcal{L}(\theta)$. This is typically achieved using the cross-entropy loss:
-
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \begin{equation}
 \mathcal{L}(\theta) = - \frac{1}{N} \sum_{i=1}^{N} \sum_{t=1}^{T_i} \log P_\theta(y_{i,t} \mid y_{i,<t}, x_i)
 \end{equation}
 
 In this formulation, $y_{i,t}$ denotes the $t$-th token of the target sequence $y_i$, while $y_{i,<t}$ represents all tokens preceding position $t$, and $T_i$ is the total sequence length. The model parameters are iteratively updated using a gradient-based optimization algorithm:
-<<<<<<< HEAD
 \begin{equation}
 \theta \leftarrow \theta - \eta \nabla_\theta \mathcal{L}(\theta)
 \end{equation}
@@ -1043,20 +867,6 @@ To achieve a memory footprint of $\sim$5GB for a 7B parameter model, we implemen
 
 
 \subsection{Low-Rank Adaptation Layers}
-=======
-
-\begin{equation}
-\theta \leftarrow \theta - \eta \nabla_\theta \mathcal{L}(\theta)
-\end{equation}
-
-where $\eta$ represents the learning rate. This optimization shifts the model's weight distribution to better align with the statistical properties and requirements of the target domain while retaining the foundational representations learned during pre-training.
-
-\subsection{4-bit NormalFloat (NF4) Implementation}
-To achieve a memory footprint of $\sim$5GB for a 7B parameter model, we implement NF4 quantization. This maps the weights to a specialized distribution that preserves the information density of the original 16-bit weights while utilizing only 4 bits per parameter.
-
-
-\subsection{Low-Rank Adaptation (LoRA) Layers}
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 Instead of updating the full Llama-2 weight matrix $W$, we inject trainable rank-decomposition matrices. The update is confined to the attention projections:
 \begin{equation}
 h = W_0x + BAx
@@ -1072,20 +882,12 @@ Automatic metrics such as BLEU and CodeBLEU are used to compare generated code
 with reference solutions. BLEU measures n-gram similarity, while CodeBLEU also
 considers syntax, data flow, and semantic correctness. These metrics provide quantitative
 support to functional evaluation.
-<<<<<<< HEAD
-
-=======
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \subsection{Validation Loss}
 During training, we monitor the validation loss $\mathcal{L}_{val}$. The validation loss is computed as the average cross-entropy loss on the held-out validation set:
 \begin{equation}
 \mathcal{L}_{val} = - \frac{1}{N_{val}} \sum_{i=1}^{N_{val}} \sum_{t=1}^{T_i} \log P_\theta(y_{i,t} \mid y_{i,<t}, x_i)
 \end{equation}
-<<<<<<< HEAD
 A decreasing validation loss indicate that the model is learning to generate more accurate code snippets over time, while a divergence between training and validation metrics may indicate potential overfitting.
-=======
-A decreasing validation loss indicate that the model is learning to generate more accurate code snippets over time, while a divergence between training and validation metrics may signal overfitting.
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 
 \subsection{BLEU Score}
 BLEU evaluates token-level n-gram overlap between generated and reference code \cite{Papineni2002}. 
@@ -1125,43 +927,26 @@ p_{n}=
 \subsection{CodeBLEU}
 CodeBLEU extends BLEU for code generation by incorporating syntax, data-flow, and semantic correctness \cite{Ren2020CodeBLEU}. 
 It is defined as shown in Equation~\eqref{eq:codebleu}:
-<<<<<<< HEAD
 \begin{equation}\label{eq:codebleu}
 \text{CodeBLEU} =
 \alpha \cdot \text{BLEU}
 + \beta \cdot \text{Match}_{\text{AST}}
 + \gamma \cdot \text{Match}_{\text{DF}}
 + \delta \cdot \text{BLEU}_{\text{weighted}}
-=======
-
-\begin{equation}\label{eq:codebleu}
-\text{CodeBLEU} =
-\alpha \cdot \text{BLEU}
-+ \beta \cdot \text{AST}
-+ \gamma \cdot \text{DFScore}
-+ \delta \cdot \text{SemanticScore}
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \end{equation}
 
 where $\alpha$, $\beta$, $\gamma$, and $\delta$ are weighting parameters that control the contribution of each component.
 
 The individual components are computed as follows:
-<<<<<<< HEAD
 
 AST similarity is calculated by comparing the abstract syntax trees of the generated and reference code, measuring the proportion of matching subtrees:
 \begin{equation}\label{eq:ast}
 \text{Match}_{\text{AST}} =
-=======
-AST similarity is calculated by comparing the abstract syntax trees of the generated and reference code, measuring the proportion of matching subtrees:
-\begin{equation}\label{eq:ast}
-\text{AST} =
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \frac{\text{matching\_subtrees}}{\text{total\_subtrees}}
 \end{equation}
 
 DFScore evaluates the correctness of data flow by comparing the data flow graphs of the generated and reference code, measuring the proportion of matching data flow edges:
 \begin{equation}\label{eq:dfscore}
-<<<<<<< HEAD
 \text{Match}_{\text{DF}} =
 \frac{\text{matching\_dataflow\_edges}}{\text{total\_dataflow\_edges}}
 \end{equation}
@@ -1172,17 +957,6 @@ The weighted BLEU component is computed using syntax-aware token weights so that
 \frac{\sum_{g \in \mathcal{G}} w(g)\,\text{Count}_{\text{clip}}(g)}{\sum_{g \in \mathcal{G}} w(g)\,\text{Count}(g)}
 \end{equation}
 where $\mathcal{G}$ denotes the set of n-grams and $w(g)$ is the predefined weight for n-gram $g$ based on token importance.
-=======
-\text{DFScore} =
-\frac{\text{matching\_dataflow\_edges}}{\text{total\_dataflow\_edges}}
-\end{equation}
-
-Semantic correctness is assessed by comparing the semantic tokens (e.g., variable names, function calls) in the generated and reference code, measuring the proportion of matching semantic tokens:
-\begin{equation}\label{eq:semantic}
-\text{SemanticScore} =
-\frac{\text{matching\_semantic\_tokens}}{\text{total\_semantic\_tokens}}
-\end{equation}
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 
 \subsection{Functional Evaluation}
 We test our model on human-eval questions, which consist of a problem statement, a reference solution, and a set of unit tests. The generated code is executed against these unit tests to verify its correctness.
@@ -1191,15 +965,10 @@ The human-eval score was found using the following formula:
 \begin{equation}
 \text{pass@k} = 1 - \left(1 - \frac{c}{n}\right)^k
 \end{equation}
-<<<<<<< HEAD
 Where $c$ is the number of correct solutions among $n$ total generated samples. By evaluating at multiple $k$ values, we can assess both the reliability of the model (pass@1) and its best-effort performance (pass@5).
 
 \subsubsection{OpenAI HumanEval Dataset}
 To rigorously assess the logical reasoning and syntactic precision of the fine-tuned model, we utilize the \textbf{OpenAI HumanEval} dataset \cite{OpenAIHumanEval2021}. This benchmark is the industry standard for evaluating the zero-shot programming capabilities of Large Language Models (LLMs), specifically focusing on functional correctness rather than mere text similarity.
-=======
-\subsubsection{OpenAI HumanEval Dataset}
-To rigorously assess the logical reasoning and syntactic precision of the fine-tuned model, we utilize the \textbf{OpenAI HumanEval} dataset. This benchmark is the industry standard for evaluating the zero-shot programming capabilities of Large Language Models (LLMs), specifically focusing on functional correctness rather than mere text similarity.
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 
 The HumanEval dataset consists of 164 hand-written Python programming problems. Each entry in the dataset is a structured triplet containing:
 \begin{itemize}
@@ -1209,13 +978,7 @@ The HumanEval dataset consists of 164 hand-written Python programming problems. 
     \item \textbf{Test Suite:} A robust set of hidden unit tests (averaging 7.7 tests per problem). To be considered "correct", the generated code must pass every test in this suite without exception.
 \end{itemize}
 
-<<<<<<< HEAD
 The challenges within the dataset range from basic string manipulation and arithmetic to complex algorithmic problems involving recursion, bitwise operations, and data structure management. Because these problems were hand-authored by human experts, they are less likely to be present in the model's original pre-training data (GitHub, Stack Overflow). Hence reducing the risk of "data leakage" and ensuring the model is truly "solving" the problem rather than reciting memorized code.
-=======
-
-
-The challenges within the dataset range from basic string manipulation and arithmetic to complex algorithmic problems involving recursion, bitwise operations, and data structure management. Because these problems were hand-authored by human experts, they are less likely to be present in the model's original pre-training data (GitHub, Stack Overflow), thereby reducing the risk of "data leakage" and ensuring the model is truly "solving" the problem rather than reciting memorized code.
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 
 \subsubsection{Pass@k Metric and Unbiased Estimation}
 While a simple success rate measures if a model can solve a problem in one attempt, code generation is inherently stochastic. We therefore utilize the \textbf{pass@k} metric. In our software implementation, we follow the unbiased estimator defined by OpenAI to account for high variance in small sample sizes:
@@ -1236,11 +999,7 @@ By combining execution-based testing with similarity metrics, the evaluation ens
 
 \section{Ollama for Local Inference}
 
-<<<<<<< HEAD
 Local inference is performed using \texttt{Ollama} \cite{Ollama2026}, a lightweight framework designed to run large language models efficiently on consumer-grade hardware. Unlike traditional approaches that rely on cloud-based APIs, Ollama enables on-device deployment, thereby reducing dependency on external services.
-=======
-Local inference is performed using \texttt{Ollama}, a lightweight framework designed to run large language models efficiently on consumer-grade hardware. Unlike traditional approaches that rely on cloud-based APIs, Ollama enables on-device deployment, thereby reducing dependency on external services.
->>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 The fine-tuned \texttt{llama-2-7b} model is integrated into the Ollama environment to support downstream tasks such as code generation. By leveraging the available GPU resources on the local machine, the system performs inference with lower latency compared to remote execution. This setup is particularly advantageous in scenarios requiring real-time responses or operating under limited network connectivity.
 Furthermore, local deployment enhances data privacy and security, as sensitive inputs are processed entirely on the user's device without being transmitted to external servers. This makes the approach suitable for applications involving proprietary code or confidential data.
 Ollama serves as the inference layer in the overall pipeline. After model fine-tuning, the trained weights are exported and loaded into the Ollama runtime, where they are queried using structured prompts. 
