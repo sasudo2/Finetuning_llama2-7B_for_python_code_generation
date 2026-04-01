@@ -26,6 +26,7 @@ The implementation relies on a specialized ecosystem of Python libraries designe
 
 \subsection{Frameworks and Libraries}
 \begin{itemize}
+<<<<<<< HEAD
     \item \textbf{Numpy \& Pandas:} For efficient data manipulation and preprocessing, used to handle prompts, predictions, and evaluation metrics. See: https://numpy.org/, https://pandas.pydata.org/.
     \item \textbf{BitsAndBytes:} It provides 4-bit Quantization (NF4) and Double Quantization, enabling the model to fit in limited GPU memory. Used for memory-efficient loading of LLaMA-2-7B with LoRA adapters. See: https://github.com/bitsandbytes-foundation/bitsandbytes.
     \item \textbf{Transformers \& TRL:} Hugging Face libraries for loading, tokenizing, and generating code using pre-trained language models. The \texttt{Trainer} API is used to manage fine-tuning loops. See: https://huggingface.co/docs/transformers/index, https://huggingface.co/docs/trl/index.
@@ -38,11 +39,26 @@ The implementation relies on a specialized ecosystem of Python libraries designe
     \item \textbf{Matplotlib:} Python plotting library used to visualize training metrics, validation loss, and evaluation results for the fine-tuned model. See: https://matplotlib.org/.
     \item \textbf{CodeBLEU:} Metric to evaluate code generation quality considering syntax, data-flow, and n-gram similarity. Used to assess functional and structural correctness of generated code. See: https://github.com/k4black/codebleu.
     \item \textbf{Sacrebleu:} Standardized BLEU score computation used to evaluate code similarity and translation quality for generated solutions. See: https://github.com/mjpost/sacrebleu.
+=======
+    \item \textbf{Numpy \& Pandas:} For efficient data manipulation and preprocessing, used to handle prompts, predictions, and evaluation metrics.
+    \item \textbf{BitsAndBytesd:} Provides 4-bit Quantization (NF4) and Double Quantization, enabling the model to fit in limited GPU memory. Used for memory-efficient loading of LLaMA-2-7B with LoRA adapters.
+    \item \textbf{Transformers \& TRL:} Hugging Face libraries for loading, tokenizing, and generating code using pre-trained language models. The \texttt{Trainer} API is used to manage fine-tuning loops.
+    \item \textbf{Optuna:} Hyperparameter optimization framework using TPE (Tree-structured Parzen Estimator) to automatically search for optimal learning rate, LoRA alpha, dropout, and other tuning parameters.
+    \item \textbf{Peft:} Implements Parameter-Efficient Fine-Tuning techniques like LoRA adapters, reducing trainable parameters while allowing effective adaptation of large language models.
+    \item \textbf{Datasets:} Provides easy access to standard datasets such as \texttt{human\_eval}, enabling straightforward integration with PyTorch for evaluation of model performance.
+    \item \textbf{PyTorch:} Deep learning framework used for model training, GPU acceleration, automatic differentiation, and managing tensor operations during fine-tuning and evaluation.
+    \item \textbf{Human\_eval:} Benchmark dataset for evaluating code generation models on functional correctness. Used to compute pass@k metrics in this project.
+    \item \textbf{TQDM:} Provides progress bars for loops, used to visually track dataset iteration and code generation evaluation progress.
+    \item \textbf{Matplotlib:} Python plotting library used to visualize training metrics, validation loss, and evaluation results for the fine-tuned model.
+    \item \textbf{Codebleu:} Metric to evaluate code generation quality considering syntax, data-flow, and n-gram similarity. Used to assess functional and structural correctness of generated code.
+    \item \textbf{Sacrebleu:} Standardized BLEU score computation used to evaluate code similarity and translation quality for generated solutions.
+>>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \end{itemize}
 
 \subsection{Development Environment}
 \begin{itemize}
     \item \textbf{Hugging Face Hub:}
+<<<<<<< HEAD
     A centralized platform for sharing and accessing pre-trained models and datasets. See: https://huggingface.co/.
     \item \textbf{Google Colab:}
     Provides access to high-performance GPUs for fine-tuning and evaluation. See: https://colab.research.google.com/.
@@ -54,6 +70,19 @@ The implementation relies on a specialized ecosystem of Python libraries designe
     Version control and collaborative development platform for code management and documentation. See: https://git-scm.com/, https://github.com/.
     \item \textbf{LaTeX:}
     Used for writing the final report, ensuring professional formatting and presentation of results. See: https://www.latex-project.org/.
+=======
+    A centralized platform for sharing and accessing pre-trained models and datasets.
+    \item \textbf{Google Colab:}
+    Provides access to high-performance GPUs for fine-tuning and evaluation.
+    \item \textbf{Kaggle:}
+    Used for data preparation and hyperparameter optimization, leveraging Kaggle's GPU resources.
+    \item \textbf{Weights \& Biases (W\&B):} 
+    Used for real-time telemetry, monitoring validation loss curves, and logging hardware consumption across all 45 HPO trials.
+    \item \textbf{Git \& GitHub:}
+    Version control and collaborative development platform for code management and documentation.
+    \item \textbf{LaTeX:}
+    Used for writing the final report, ensuring professional formatting and presentation of results.
+>>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 \end{itemize}
 
 \subsection{Data Collection}
@@ -67,10 +96,17 @@ The implementation relies on a specialized ecosystem of Python libraries designe
 This project is primarily targeted at fine-tuning large language models for Python code generation using Parameter Efficient Fine-Tuning (PEFT) with QLoRA. The feasibility of this project is analyzed from the following perspectives
 
 \subsection{Schedule Feasibility}
+<<<<<<< HEAD
 The project is scheduled into three phases including data collection,model-fine tuning, and evaluation.With the completion of evaluation before the final stage the project is well-aligned with the academic calendar.
 
 \subsection{Operational Feasibility}
 The project is designed to be applicable on relatively low-end devices. The hardware requirement for Llama-2 7B model is approximately 6 to 8 GB of VRAM, which is widely available in consumer-grade GPUs such as the NVIDIA RTX 3060 or 4060 and the Google Colab free tier (T4 GPU). 
+=======
+The project is scheduled into three phases including data collection,model-fine tuning, and evaluation.With the completion of evaluation before the final stage the project successfully well-aligned with the academic calendar.
+
+\subsection{Operational Feasibility}
+The project is designed to be applicable on relatively low-end devices. The hardware requirement for Llama-2 7B is approximately 6-8GB of VRAM, which is widely available in consumer-grade GPUs such as the NVIDIA RTX 3060 or 4060 and the Google Colab free tier (T4 GPU). 
+>>>>>>> f25560bfd47078f8b5d73a99fefc2843b1dc829a
 The use of QLoRA significantly reduces the memory footprint, making it feasible to perform fine-tuning on a single consumer-grade GPU rather than requiring an enterprise-level server cluster.
 
 \subsection{Economic Feasibility}
