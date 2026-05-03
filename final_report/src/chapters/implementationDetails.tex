@@ -21,13 +21,13 @@ Fine-tuning Llama-2 7B for Python code generation requires a high-quality, domai
 \begin{table}[h!]
 \caption{Datasets Used for Fine-tuning Llama-2 7B for Python Code Generation.}
 \centering
-\begin{tabular}{|p{3cm}|p{2cm}|p{4cm}|p{2cm}|}
+\begin{tabular}{|p{3cm}|p{2cm}|p{5cm}|p{2cm}|}
 \hline
 \textbf{Dataset} & \textbf{Size} & \textbf{Description} & \textbf{License} \\
 \hline
-FlyTech Python Code Dataset (2025) \cite{} & $\sim$42,000 pairs & Python scripts with comments, docstrings, and structured tasks. Curated for code generation with high-quality, well-commented code and diverse algorithmic/real-world examples. & MIT License \\
+FlyTech Python Code Dataset (2025) \cite{FlyTechDataset2026} & $\sim$42,000 pairs & Python scripts with comments, docstrings, and structured tasks. Curated for code generation with high-quality, well-commented code and diverse algorithmic/real-world examples. & MIT License \\
 \hline
-Python Code Instructions 18k (Alpaca-style) & $\sim$18,000 pairs & Instruction prompts and Python responses. Matches instruction-tuning structure; provides human-readable prompts and increases prompt diversity. & CC BY-NC 4.0 \\
+Python Code Instructions 18k (Alpaca-style) \cite{AlpacaPythonInstructions2026} & $\sim$18,000 pairs & Instruction prompts and Python responses. Matches instruction-tuning structure; provides human-readable prompts and increases prompt diversity. & CC BY-NC 4.0 \\
 \hline
 \end{tabular}
 
@@ -48,9 +48,9 @@ The primary source for our instruction-following data was the \textbf{iamtarun/p
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=\textwidth]{src/images/figures/Flytech.png}
-    \caption{FlyTech Datasets}
-    \label{fig:Flytech datasets}
+    \includegraphics[width=\textwidth]{src/images/figures/alpaca.png}
+    \caption{Alpaca Datasets}
+    \label{fig:Alpaca datasets}
 \end{figure}
 
 \subsection{FlyTech Dataset Processing}
@@ -64,10 +64,12 @@ To supplement the algorithmic data with broader technical coding patterns, we ut
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=\textwidth]{src/images/figures/alpaca.png}
-    \caption{Alpaca Datasets}
-    \label{fig:Alpaca datasets}
+    \includegraphics[width=\textwidth]{src/images/figures/Flytech.png}
+    \caption{FlyTech Datasets}
+    \label{fig:Flytech datasets}
 \end{figure}
+
+
 
 \subsection{Consolidated Training Set}
 By merging the refined Alpaca and FlyTech subsets, we produced a final training corpus optimized for Python code generation. This combination provides a balance between competitive programming logic and practical software engineering tasks.
@@ -204,7 +206,7 @@ We utilized the \texttt{LlamaTokenizer} with a fixed \texttt{max\_length} of 512
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{src/images/figures/final_datasets.png}
+    \includegraphics[width=\textwidth]{src/images/figures/final_datasets.png}
     \caption{Final Datasets}
     \label{fig:Final Datasets}
 \end{figure}
@@ -214,15 +216,15 @@ We utilized the \texttt{LlamaTokenizer} with a fixed \texttt{max\_length} of 512
 The fine-tuning of Large Language Models (LLMs) is highly sensitive to the configuration of adapters and optimization schedules. To move beyond sub-optimal manual tuning, we implemented an automated Hyperparameter Optimization (HPO) pipeline using \textbf{Optuna} integrated with the \textbf{Hugging Face Trainer}.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{src/images/figures/hyperparameter_tuning_flowchart.drawio.png}
+    \includegraphics[width=0.5\textwidth]{src/images/figures/hyperparameter_tuning_flowchart.drawio.png}
     \caption{Hyperparameter Optimization with Random Search}
     \label{fig:hyperparameter optimization with random search}
 \end{figure}
 
 \subsection{Bayesian Optimization via TPE}
-Rather than utilizing a brute-force Grid Search or an uninformed Random Search, we employed the \textbf{Tree-structured Parzen Estimator (TPE)}. This Bayesian approach treats the optimization as a sequential process:
+Rather than utilizing a brute-force Grid Search or an uninformed Random Search, we employed the \textbf{Tree-structured Parzen Estimator (TPE)} \cite{Bergstra2011TPE}. This Bayesian approach treats the optimization as a sequential process:
 \begin{enumerate}
-    \item \textbf{Exploration:} In initial trials (0--10), the sampler populates the search space.
+    \item \textbf{Exploration:} In initial trials (0-10), the sampler populates the search space.
     \item \textbf{Exploitation:} For subsequent trials, the TPE algorithm constructs a probability model of the hyperparameter performance, favoring regions that historically yielded a lower validation loss.
 \end{enumerate}
 Additionally, a \textbf{Median Pruner} was implemented to improve computational efficiency. This mechanism monitors the intermediate loss and terminates trials that are statistically unlikely to outperform the current "best" trial, saving significant GPU hours.
