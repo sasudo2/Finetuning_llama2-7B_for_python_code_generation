@@ -73,7 +73,7 @@ A specialized collator:
 
 ### 4. QLoRA Optimization
 Memory-efficient fine-tuning:
-- Reduces ~28GB → ~5GB VRAM usage
+- Reduces ~14GB → ~5GB VRAM usage
 - Enables training large models on limited hardware
 
 ---

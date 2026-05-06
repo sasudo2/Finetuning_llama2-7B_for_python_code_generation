@@ -3,7 +3,8 @@
 This repository contains the minor project work for Thapathali College students. It demonstrates a complete fine-tuning pipeline for the **LLaMA-2-7B Chat** model on Python code generation tasks using **QLoRA** and **Optuna**.
 
 ## Huggingface repository for model
-https://huggingface.co/pradip777/llama-2-PCG/tree/main
+link to addapter in .safetensor format: https://huggingface.co/pradip777/llama-2-PCG \
+link to final llama model in .safetensor format : https://huggingface.co/sasudo2/llama2_7b_PCG
 
 ## Project Summary
 
@@ -11,6 +12,7 @@ https://huggingface.co/pradip777/llama-2-PCG/tree/main
 - Use QLoRA with 4-bit NF4 quantization to reduce memory requirements.
 - Use Optuna to optimize LoRA and training hyperparameters.
 - Maintain a dataset of cleaned Python coding instruction examples for training and validation.
+- Model avavilable on Huggingface.
 
 ## Repository Structure
 
@@ -18,16 +20,14 @@ https://huggingface.co/pradip777/llama-2-PCG/tree/main
   - `refined_train.jsonl` — training dataset for fine-tuning
   - `refined_test.jsonl` — evaluation/test dataset
   - `optuna1 (1).db` — Optuna study database for HPO experiments
-- `Documentation/`
-  - `Data_preparation/` — dataset cleaning and classification documentation
-  - `Fine_tuning/` — final fine-tuning pipeline documentation
-  - `Hyperparameter Optimization/` — Optuna and HPO strategy documentation
 - `Notebooks/`
   - `Data_preparation/` — data cleaning and preparation notebooks
   - `Fine_tuning/` — training notebook with QLoRA and model push examples
   - `HPO/` — hyperparameter tuning notebooks for Optuna experiments
   - `Evaluation/` - evaluation notebooks for final model
-- `final_report/` — project report files and thesis documentation
+  - `Merger/` - merge adapter and base mode into single model
+  - `Ollama_implementation/` - convert merged model into Ollama executable model.
+- `final_report/` — thesis documentation
 
 ## Key Components
 
@@ -51,6 +51,7 @@ https://huggingface.co/pradip777/llama-2-PCG/tree/main
 
 ## How to Use
 
+### Basic Flow
 1. Review the documentation in `Documentation/`.
 2. Open the notebooks in `Notebooks/` for data preparation, fine-tuning, and HPO.
 3. Use `refined_train.jsonl` and `refined_test.jsonl` from `Datasets/` for training and validation.
@@ -58,7 +59,7 @@ https://huggingface.co/pradip777/llama-2-PCG/tree/main
 
 ## Notes
 
-- The repository is primarily organized around notebooks and documentation.
+- The repository is primarily organized around notebooks.
 - The dataset used for training is included locally in `Datasets/`.
 - The project demonstrates efficient fine-tuning of a large model for Python code generation on constrained hardware.
 
