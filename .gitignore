@@ -28,3 +28,5 @@
 .drive
 outputs
 wandb
+how-branch --all
+mermaid-filter.err
