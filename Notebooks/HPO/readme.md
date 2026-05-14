@@ -2,7 +2,7 @@ Hyperparameter Optimization (HPO) for LLaMA-2-7B Fine-Tuning
 
 This repository implements automated hyperparameter optimization (HPO) for fine-tuning LLaMA-2-7B Chat on Python code generation tasks using QLoRA and Optuna.
 
-🚀 Overview
+## Overview
 The goal of this module is to identify optimal training configurations that minimize validation loss while maintaining efficient GPU memory usage.
 
 We combine:
@@ -23,7 +23,7 @@ Warmup Steps: 1
 
 This allows early stopping of poorly performing trials to save compute.
 
-🔍 Search Space
+## Search Space
 
 The following hyperparameters are optimized:
 
@@ -35,13 +35,14 @@ LoRA Alpha	8, 16, 32
 LoRA Dropout	0.05 → 0.15
 Batch Size	4, 8, 16
 Warmup Ratio	0.03 → 0.15
-🧠 Key Techniques
+
+## Key Techniques
 1. QLoRA (4-bit Fine-Tuning)
 Quantization type: NF4
 Double quantization: Enabled
 Compute dtype: FP16 / BF16
 
-💡 Reduces memory usage from ~16GB → ~5GB
+==Reduces memory usage from ~16GB → ~5GB==
 
 2. Instruction Masking (SFT)
 Prompt tokens → masked with -100
@@ -70,7 +71,7 @@ NaN / Inf loss checks
 
 Failed trials are safely discarded.
 
-🔄 Optimization Pipeline
+## Optimization Pipeline
 Load dataset
 Shuffle and create subset
 Train/validation split
@@ -85,7 +86,7 @@ Repeat for multiple trials
 
 Lower validation loss indicates better generalization.
 
-📈 Output
+## Output
 
 After optimization:
 
@@ -93,11 +94,14 @@ Best hyperparameters are printed
 Saved to: best_params.json
 
 Each trial stored in:
-
 ./optuna_results/trial_{n}
-🧪 Running the Optimization
+
+- Running the Optimization
+```bash
 python train_optuna.py
-📌 Best Practices
+```
+
+- Best Practices
 Use small subset for HPO → full dataset for final training
 Keep batch size consistent with GPU memory
 Monitor for overfitting (train vs validation loss)
