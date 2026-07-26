@@ -30,3 +30,5 @@ outputs
 wandb
 how-branch --all
 mermaid-filter.err
+paper
+final_report
